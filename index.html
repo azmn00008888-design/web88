@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>حارس الفراشات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body {
+            font-family: 'Cairo', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow: hidden;
+            touch-action: none;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            /* ✅ منع أي إزاحة للصفحة */
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        @keyframes flutter-left {
+            0%, 100% { transform: scaleX(1); }
+            50% { transform: scaleX(0.2); }
+        }
+        @keyframes flutter-right {
+            0%, 100% { transform: scaleX(1); }
+            50% { transform: scaleX(0.2); }
+        }
+        .wing-left { transform-origin: right center; animation: flutter-left 0.15s infinite ease-in-out; }
+        .wing-right { transform-origin: left center; animation: flutter-right 0.15s infinite ease-in-out; }
+
+        @keyframes wasp-buzz {
+            0%, 100% { margin: 0 0; }
+            25%  { margin: -2px 2px; }
+            50%  { margin: 2px -2px; }
+            75%  { margin: -1px -1px; }
+        }
+        /* ✅ الاهتزاز بـ margin بدلاً من transform لتجنب التعارض */
+        .wasp-inner { animation: wasp-buzz 0.08s infinite linear; }
+
+        .garden-bg { background: linear-gradient(to bottom, #a8ff78, #78ffd6); }
+
+        @keyframes drift {
+            from { transform: translateX(110vw); }
+            to   { transform: translateX(-110vw); }
+        }
+        .cloud { animation: drift linear infinite; position: absolute; background: white; border-radius: 9999px; filter: blur(2px); opacity: 0.4; }
+
+        /* ✅ تأثير الضربة على الدبور نفسه فقط */
+        @keyframes hit-shake {
+            0%,100% { transform: translate3d(var(--wx), var(--wy), 0); }
+            25%  { transform: translate3d(calc(var(--wx) - 6px), calc(var(--wy) + 4px), 0); }
+            75%  { transform: translate3d(calc(var(--wx) + 6px), calc(var(--wy) - 4px), 0); }
+        }
+        .wasp-hit { animation: hit-shake 0.15s ease-out !important; }
+
+        #game-shell {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+        }
+        #game-card {
+            width: 100%;
+            max-width: 860px;
+            /* ✅ ارتفاع ثابت يملأ الشاشة بدون تجاوز */
+            height: calc(100vh - 24px);
+            max-height: 700px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            border: 3px solid rgba(255,255,255,0.5);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            /* ✅ لا transform على الكارت نهائياً */
+            transform: none !important;
+        }
+        #game-area {
+            position: relative;
+            flex: 1;
+            width: 100%;
+            overflow: hidden;
+            cursor: crosshair;
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="garden-bg">
+
+    <!-- غيوم خلفية -->
+    <div class="cloud" style="width:180px;height:44px;top:8%;animation-duration:45s;left:0"></div>
+    <div class="cloud" style="width:240px;height:60px;top:25%;animation-duration:62s;left:0;animation-delay:-20s"></div>
+    <div class="cloud" style="width:140px;height:36px;top:15%;animation-duration:38s;left:0;animation-delay:-10s"></div>
+
+    <div id="game-shell">
+      <div id="game-card">
+
+        <!-- HUD -->
+        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.4);backdrop-filter:blur(10px);padding:10px 20px;border-bottom:2px solid rgba(255,255,255,0.3);border-radius:24px 24px 0 0;flex-shrink:0;z-index:30;">
+            <div style="display:flex;align-items:center;gap:6px;">
+                <span style="font-size:28px">⏱️</span>
+                <div>
+                    <div style="font-size:11px;color:#064e3b;font-weight:700;">الوقت المتبقي</div>
+                    <div id="timer" style="font-size:22px;font-weight:900;color:#022c22;">60s</div>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <span style="font-size:28px">🦋</span>
+                <div>
+                    <div style="font-size:11px;color:#064e3b;font-weight:700;">الفراشات الحية</div>
+                    <div id="butterflies-count" style="font-size:22px;font-weight:900;color:#065f46;">10 / 10</div>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+                <span style="font-size:28px">🏆</span>
+                <div>
+                    <div style="font-size:11px;color:#064e3b;font-weight:700;">النقاط</div>
+                    <div id="score" style="font-size:22px;font-weight:900;color:#1e40af;">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ساحة اللعب -->
+        <div id="game-area">
+
+            <!-- تنبيه الدبور -->
+            <div id="warning-banner" style="position:absolute;inset:0;display:flex;justify-content:center;align-items:center;pointer-events:none;z-index:40;opacity:0;transform:scale(0);transition:all 0.4s;">
+                <div style="background:rgba(220,38,38,0.95);color:white;border:4px solid #fbbf24;padding:16px 28px;border-radius:18px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+                    <div style="font-size:22px;font-weight:900;">⚠️ تحذير! دبور شرير يقترب! ⚠️</div>
+                    <div style="font-size:13px;margin-top:4px;font-weight:700;">اضربه ضربة واحدة فقط!</div>
+                </div>
+            </div>
+
+            <!-- شاشة البداية -->
+            <div id="start-screen" style="position:absolute;inset:0;background:rgba(6,40,30,0.85);backdrop-filter:blur(8px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;z-index:50;border-radius:0 0 22px 22px;transition:all 0.5s;">
+                <div style="max-width:380px;background:rgba(255,255,255,0.1);padding:24px;border-radius:20px;border:2px solid rgba(255,255,255,0.2);text-align:center;color:white;">
+                    <div style="font-size:56px;margin-bottom:12px;">🦋⚡🐝</div>
+                    <h1 style="font-size:34px;font-weight:900;color:#fde047;margin-bottom:8px;">حارس الفراشات</h1>
+                    <p style="font-size:13px;color:#d1fae5;line-height:1.8;margin-bottom:20px;">
+                        احمِ فراشات الحديقة من الدبور الشرير!<br>
+                        انقر على الدبور فور ظهوره لتقضي عليه.
+                    </p>
+                    <button id="start-btn" style="width:100%;background:#fde047;color:#064e3b;font-family:'Cairo',sans-serif;font-size:20px;font-weight:900;padding:14px;border-radius:14px;border:none;cursor:pointer;transition:transform 0.1s;" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'">
+                        ابدأ اللعب الآن 🎮
+                    </button>
+                </div>
+            </div>
+
+            <!-- شاشة انتهاء اللعبة -->
+            <div id="game-over-screen" style="position:absolute;inset:0;background:rgba(60,0,0,0.92);backdrop-filter:blur(8px);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;z-index:50;border-radius:0 0 22px 22px;opacity:0;transition:opacity 0.4s;">
+                <div style="max-width:380px;background:rgba(255,255,255,0.08);padding:24px;border-radius:20px;border:2px solid rgba(255,100,100,0.3);text-align:center;color:white;width:100%;">
+                    <div id="game-over-icon" style="font-size:56px;margin-bottom:8px;">🏆</div>
+                    <h1 id="game-over-title" style="font-size:28px;font-weight:900;color:#fde047;margin-bottom:16px;">انتهى الوقت!</h1>
+                    <div style="background:rgba(0,0,0,0.2);padding:14px;border-radius:14px;margin-bottom:16px;">
+                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.1);font-size:15px;">
+                            <span>النقاط النهائية:</span><span id="final-score" style="font-weight:900;color:#fde047;">0</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.1);font-size:15px;">
+                            <span>أعلى نتيجة:</span><span id="high-score" style="font-weight:900;color:#93c5fd;">0</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.1);font-size:15px;">
+                            <span>الفراشات الناجية:</span><span id="final-butterflies" style="font-weight:900;color:#6ee7b7;">0</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:6px 0;font-size:15px;">
+                            <span>الدبابير المقضى عليها:</span><span id="wasps-killed" style="font-weight:900;color:#fca5a5;">0</span>
+                        </div>
+                    </div>
+                    <button id="restart-btn" style="width:100%;background:#10b981;color:white;font-family:'Cairo',sans-serif;font-size:18px;font-weight:900;padding:14px;border-radius:14px;border:none;cursor:pointer;" onmousedown="this.style.opacity='0.8'" onmouseup="this.style.opacity='1'">
+                        العب مجدداً 🔄
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- شريط سفلي -->
+        <div style="background:rgba(255,255,255,0.3);backdrop-filter:blur(8px);padding:6px 16px;border-top:1px solid rgba(255,255,255,0.2);display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:700;color:#064e3b;border-radius:0 0 22px 22px;flex-shrink:0;z-index:20;">
+            <span>احمِ الفراشات من الدبور الشرير!</span>
+            <span style="background:rgba(6,78,59,0.1);padding:2px 8px;border-radius:6px;">v2.1</span>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+        // --- صوت ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            const t = audioCtx.currentTime;
+            if (type === 'kill') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(120, t);
+                osc.frequency.exponentialRampToValueAtTime(350, t + 0.35);
+                gain.gain.setValueAtTime(0.5, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.35);
+                osc.start(); osc.stop(t + 0.35);
+            } else if (type === 'eat') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, t);
+                osc.frequency.exponentialRampToValueAtTime(120, t + 0.25);
+                gain.gain.setValueAtTime(0.4, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+                osc.start(); osc.stop(t + 0.25);
+            } else if (type === 'warning') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, t);
+                osc.frequency.setValueAtTime(440, t + 0.15);
+                gain.gain.setValueAtTime(0.25, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+                osc.start(); osc.stop(t + 0.3);
+            } else if (type === 'victory') {
+                osc.type = 'sine';
+                [261.63,329.63,392,523.25].forEach((f,i)=> osc.frequency.setValueAtTime(f, t+i*0.1));
+                gain.gain.setValueAtTime(0.35, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+                osc.start(); osc.stop(t + 0.5);
+            } else if (type === 'gameover') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, t);
+                osc.frequency.exponentialRampToValueAtTime(80, t + 0.8);
+                gain.gain.setValueAtTime(0.4, t);
+                gain.gain.exponentialRampToValueAtTime(0.01, t + 0.8);
+                osc.start(); osc.stop(t + 0.8);
+            }
+        }
+
+        // --- عناصر ---
+        const gameArea        = document.getElementById('game-area');
+        const timerEl         = document.getElementById('timer');
+        const bCountEl        = document.getElementById('butterflies-count');
+        const scoreEl         = document.getElementById('score');
+        const warningBanner   = document.getElementById('warning-banner');
+        const startScreen     = document.getElementById('start-screen');
+        const startBtn        = document.getElementById('start-btn');
+        const gameOverScreen  = document.getElementById('game-over-screen');
+        const gameOverTitle   = document.getElementById('game-over-title');
+        const gameOverIcon    = document.getElementById('game-over-icon');
+        const finalScoreEl    = document.getElementById('final-score');
+        const highScoreEl     = document.getElementById('high-score');
+        const finalButtEl     = document.getElementById('final-butterflies');
+        const waspsKilledEl   = document.getElementById('wasps-killed');
+        const restartBtn      = document.getElementById('restart-btn');
+
+        // --- حالة ---
+        let score=0, timeLeft=60, gameActive=false;
+        let butterflies=[], wasp=null;
+        let lastWaspSpawn=0, totalWaspsKilled=0;
+        let gameInterval=null, animFrameId=null;
+        let highestScore = parseInt(localStorage.getItem('bg_hs')) || 0;
+        let areaW=600, areaH=400;
+
+        const BCOLORS = [
+            {main:'#ff5e62',wing:'#ff9966'},{main:'#4facfe',wing:'#00f2fe'},
+            {main:'#b1f030',wing:'#50c9c3'},{main:'#ea00d9',wing:'#711c91'},
+            {main:'#ffb347',wing:'#ffcc33'}
+        ];
+
+        // ✅ قياس الأبعاد بدون أي تحويل transform
+        function measureArea() {
+            areaW = gameArea.offsetWidth  || 600;
+            areaH = gameArea.offsetHeight || 400;
+        }
+
+        window.addEventListener('resize', () => { measureArea(); clampAll(); });
+        window.addEventListener('orientationchange', () => setTimeout(()=>{ measureArea(); clampAll(); }, 350));
+        document.addEventListener('touchstart', e => { if(e.touches.length>1) e.preventDefault(); }, {passive:false});
+
+        // --- أزرار ---
+        startBtn.addEventListener('click', () => {
+            playSound('victory');
+            startScreen.style.opacity='0'; startScreen.style.transform='scale(0.9)';
+            setTimeout(()=>{
+                startScreen.style.display='none';
+                requestAnimationFrame(()=> requestAnimationFrame(()=>{ measureArea(); initGame(); }));
+            }, 450);
+        });
+        restartBtn.addEventListener('click', () => {
+            playSound('victory');
+            gameOverScreen.style.opacity='0';
+            setTimeout(()=>{
+                gameOverScreen.style.display='none';
+                requestAnimationFrame(()=> requestAnimationFrame(()=>{ measureArea(); initGame(); }));
+            }, 350);
+        });
+
+        // --- تهيئة ---
+        function initGame() {
+            score=0; timeLeft=60; totalWaspsKilled=0; gameActive=true;
+            butterflies=[]; wasp=null;
+            gameArea.querySelectorAll('.bf,.wp,.ft').forEach(e=>e.remove());
+            scoreEl.textContent='0';
+            timerEl.textContent='60s'; timerEl.style.color='#022c22';
+            for(let i=0;i<10;i++) spawnButterfly();
+            updateBUI();
+            lastWaspSpawn=Date.now();
+            clearInterval(gameInterval); gameInterval=setInterval(gameTick,1000);
+            cancelAnimationFrame(animFrameId); animFrameId=requestAnimationFrame(gameLoop);
+        }
+
+        // --- فراشة ---
+        function spawnButterfly() {
+            const id='b'+Math.random().toString(36).substr(2,8);
+            const c=BCOLORS[Math.floor(Math.random()*BCOLORS.length)];
+            const sz=44;
+            const x=clampX(Math.random()*(areaW-sz-30)+15, sz);
+            const y=clampY(Math.random()*(areaH-sz-30)+15, sz);
+            const ang=Math.random()*360;
+            const el=document.createElement('div');
+            el.className='bf';
+            el.id=id;
+            el.style.cssText=`position:absolute;left:0;top:0;pointer-events:none;z-index:10;will-change:transform;transform:translate3d(${x}px,${y}px,0) rotate(${ang}deg);`;
+            el.innerHTML=`<svg width="44" height="44" viewBox="0 0 100 100">
+                <path class="wing-left" d="M50 50 C20 10,5 30,20 60 C5 75,10 90,50 65" fill="${c.wing}" stroke="${c.main}" stroke-width="3"/>
+                <path class="wing-right" d="M50 50 C80 10,95 30,80 60 C95 75,90 90,50 65" fill="${c.wing}" stroke="${c.main}" stroke-width="3"/>
+                <ellipse cx="50" cy="55" rx="4" ry="24" fill="#333"/>
+                <path d="M48 30 Q40 15 35 18" stroke="#333" stroke-width="2" fill="none"/>
+                <path d="M52 30 Q60 15 65 18" stroke="#333" stroke-width="2" fill="none"/>
+            </svg>`;
+            gameArea.appendChild(el);
+            butterflies.push({id,el,x,y,vx:(Math.random()-.5)*2.4,vy:(Math.random()-.5)*2.4,sz,ang});
+        }
+
+        // --- دبور ---
+        function startWaspSequence() {
+            if(wasp||!gameActive) return;
+            wasp={isPreparing:true, spawnTime:Date.now()};
+            playSound('warning');
+            warningBanner.style.opacity='1'; warningBanner.style.transform='scale(1)';
+            setTimeout(()=>{
+                warningBanner.style.opacity='0'; warningBanner.style.transform='scale(0)';
+                if(!gameActive||!wasp||!wasp.isPreparing) return;
+
+                // ✅ حساب الموضع أولاً
+                const wx = clampWX(areaW*0.1 + Math.random()*(areaW*0.8-75));
+                const wy = clampWY(areaH*0.1 + Math.random()*(areaH*0.8-75));
+
+                // ✅ الـ wrapper: يتحرك بـ translate3d فقط
+                const wrapper=document.createElement('div');
+                wrapper.className='wp';
+                wrapper.style.cssText=`position:absolute;left:0;top:0;width:75px;height:75px;z-index:20;cursor:pointer;will-change:transform;transform:translate3d(${wx}px,${wy}px,0);`;
+
+                // ✅ الـ inner: الاهتزاز بـ margin فقط (لا تعارض مع transform الـ wrapper)
+                const inner=document.createElement('div');
+                inner.className='wasp-inner';
+                inner.style.cssText='width:75px;height:75px;';
+                inner.innerHTML=`<svg width="75" height="75" viewBox="0 0 100 100">
+                    <ellipse cx="35" cy="35" rx="8" ry="25" fill="#e2e8f0" opacity="0.8" transform="rotate(-30 35 35)"/>
+                    <ellipse cx="65" cy="35" rx="8" ry="25" fill="#e2e8f0" opacity="0.8" transform="rotate(30 65 35)"/>
+                    <path d="M35 50 Q20 60 15 70" stroke="#1e293b" stroke-width="3" fill="none"/>
+                    <path d="M65 50 Q80 60 85 70" stroke="#1e293b" stroke-width="3" fill="none"/>
+                    <ellipse cx="50" cy="50" rx="22" ry="30" fill="#facc15" transform="rotate(90 50 50)"/>
+                    <path d="M32 50 C35 35,65 35,68 50 C65 65,35 65,32 50Z" fill="#1e293b"/>
+                    <path d="M42 50 C45 30,55 30,58 50 C55 70,45 70,42 50Z" fill="#1e293b"/>
+                    <circle cx="42" cy="28" r="5" fill="#ef4444"/>
+                    <circle cx="58" cy="28" r="5" fill="#ef4444"/>
+                    <path d="M45 22 Q40 10 32 12" stroke="#1e293b" stroke-width="3" fill="none"/>
+                    <path d="M55 22 Q60 10 68 12" stroke="#1e293b" stroke-width="3" fill="none"/>
+                    <polygon points="50,88 45,75 55,75" fill="#1e293b"/>
+                </svg>`;
+
+                wrapper.appendChild(inner);
+
+                // ✅ حدث النقر على الـ wrapper بمساحة أكبر لسهولة النقر على الموبايل
+                const onHit = (e)=>{ e.stopPropagation(); e.preventDefault(); hitWasp(); };
+                wrapper.addEventListener('pointerdown', onHit);
+                wrapper.addEventListener('touchstart', onHit, {passive:false});
+
+                gameArea.appendChild(wrapper);
+                wasp.el=wrapper; wasp.x=wx; wasp.y=wy;
+                wasp.hp=1; wasp.speed=1.9; wasp.isPreparing=false;
+            }, 1200);
+        }
+
+        // --- ضربة الدبور ---
+        function hitWasp() {
+            if(!wasp||wasp.isPreparing||!gameActive) return;
+            wasp.hp--;
+            if(wasp.hp<=0) {
+                playSound('kill');
+                totalWaspsKilled++;
+                const elapsed=(Date.now()-wasp.spawnTime)/1000;
+                const bonus=Math.max(40,Math.round(200-elapsed*20));
+                score+=bonus; scoreEl.textContent=score;
+                showFT(`+${bonus} نقطة! 🐝☠️`, wasp.x, wasp.y, '#ca8a04','900','18px');
+                const el=wasp.el;
+                el.style.transition='all 0.35s ease-out';
+                el.style.opacity='0';
+                el.style.transform=`translate3d(${wasp.x}px,${wasp.y}px,0) scale(0.2) rotate(200deg)`;
+                el.style.pointerEvents='none';
+                setTimeout(()=>el.remove(), 380);
+                wasp=null; lastWaspSpawn=Date.now();
+            }
+        }
+
+        // --- نص عائم ---
+        function showFT(text, x, y, color='#dc2626', weight='700', size='15px') {
+            const el=document.createElement('div');
+            el.className='ft';
+            el.style.cssText=`position:absolute;left:${x}px;top:${y}px;pointer-events:none;z-index:30;font-family:'Cairo',sans-serif;font-weight:${weight};font-size:${size};color:${color};transition:transform 0.9s ease-out,opacity 0.9s ease-out;will-change:transform,opacity;`;
+            el.textContent=text;
+            gameArea.appendChild(el);
+            requestAnimationFrame(()=>{
+                el.style.transform='translateY(-55px)';
+                el.style.opacity='0';
+            });
+            setTimeout(()=>el.remove(),950);
+        }
+
+        function updateBUI() {
+            bCountEl.textContent=`${butterflies.length} / 10`;
+            bCountEl.style.color=butterflies.length<=3?'#dc2626':'#065f46';
+        }
+
+        // --- Tick ---
+        function gameTick() {
+            if(!gameActive) return;
+            timeLeft--;
+            if(wasp&&!wasp.isPreparing) {
+                score=Math.max(0,score-8); scoreEl.textContent=score;
+                showFT('-8 📉', wasp.x+5, wasp.y+70,'#dc2626','700','13px');
+            }
+            timerEl.textContent=`${timeLeft}s`;
+            if(timeLeft<=10) { timerEl.style.color='#dc2626'; }
+            if(timeLeft<=0||butterflies.length===0) { endGame(); return; }
+            const now=Date.now();
+            if(!wasp&&(now-lastWaspSpawn>2000+Math.random()*1500)) startWaspSequence();
+        }
+
+        // --- clamp helpers ---
+        function clampX(x,sz=44){ return Math.max(8, Math.min(areaW-sz-8, x)); }
+        function clampY(y,sz=44){ return Math.max(8, Math.min(areaH-sz-8, y)); }
+        function clampWX(x){ return Math.max(8, Math.min(areaW-83, x)); }
+        function clampWY(y){ return Math.max(8, Math.min(areaH-83, y)); }
+        function clampAll() {
+            butterflies.forEach(b=>{ b.x=clampX(b.x,b.sz); b.y=clampY(b.y,b.sz); });
+            if(wasp&&!wasp.isPreparing){ wasp.x=clampWX(wasp.x); wasp.y=clampWY(wasp.y); }
+        }
+
+        // --- حلقة الرسم ---
+        function gameLoop() {
+            if(!gameActive) return;
+
+            // فراشات
+            butterflies.forEach(b=>{
+                b.vx+=(Math.random()-.5)*0.35;
+                b.vy+=(Math.random()-.5)*0.35;
+                const ms=1.9;
+                b.vx=Math.max(-ms,Math.min(ms,b.vx));
+                b.vy=Math.max(-ms,Math.min(ms,b.vy));
+                b.x+=b.vx; b.y+=b.vy;
+                if(b.x<8){b.x=8;b.vx=Math.abs(b.vx);}
+                else if(b.x>areaW-b.sz-8){b.x=areaW-b.sz-8;b.vx=-Math.abs(b.vx);}
+                if(b.y<8){b.y=8;b.vy=Math.abs(b.vy);}
+                else if(b.y>areaH-b.sz-8){b.y=areaH-b.sz-8;b.vy=-Math.abs(b.vy);}
+                b.ang=Math.atan2(b.vy,b.vx)*(180/Math.PI)+90;
+                b.el.style.transform=`translate3d(${b.x}px,${b.y}px,0) rotate(${b.ang}deg)`;
+            });
+
+            // دبور
+            if(wasp&&!wasp.isPreparing&&wasp.el) {
+                if(butterflies.length>0) {
+                    let closest=null, minD=Infinity;
+                    butterflies.forEach(b=>{ const d=Math.hypot(b.x-wasp.x,b.y-wasp.y); if(d<minD){minD=d;closest=b;} });
+                    if(closest) {
+                        const dx=closest.x-wasp.x, dy=closest.y-wasp.y;
+                        const d=Math.hypot(dx,dy);
+                        if(d>5) {
+                            wasp.x+=dx/d*wasp.speed; wasp.y+=dy/d*wasp.speed;
+                            wasp.x=clampWX(wasp.x); wasp.y=clampWY(wasp.y);
+                            // ✅ transform على الـ wrapper فقط — بدون rotate لتجنب مشاكل التراكم
+                            wasp.el.style.transform=`translate3d(${wasp.x}px,${wasp.y}px,0)`;
+                        }
+                        if(d<28) eatButterfly(closest.id);
+                    }
+                } else {
+                    wasp.x=clampWX(wasp.x+(Math.random()-.5)*2);
+                    wasp.y=clampWY(wasp.y+(Math.random()-.5)*2);
+                    wasp.el.style.transform=`translate3d(${wasp.x}px,${wasp.y}px,0)`;
+                }
+            }
+
+            animFrameId=requestAnimationFrame(gameLoop);
+        }
+
+        // --- أكل فراشة ---
+        function eatButterfly(id) {
+            const i=butterflies.findIndex(b=>b.id===id);
+            if(i===-1) return;
+            const eaten=butterflies[i]; playSound('eat');
+            showFT('💔 فراشة مفترسة!',eaten.x,eaten.y-10,'#dc2626','700','15px');
+            eaten.el.style.opacity='0'; eaten.el.style.transform+=' scale(0.2)';
+            setTimeout(()=>eaten.el.remove(),500);
+            butterflies.splice(i,1); updateBUI();
+            score=Math.max(0,score-50); scoreEl.textContent=score;
+            if(butterflies.length===0) endGame();
+        }
+
+        // --- إنهاء ---
+        function endGame() {
+            gameActive=false;
+            clearInterval(gameInterval); cancelAnimationFrame(animFrameId);
+            if(wasp){if(wasp.el)wasp.el.remove();wasp=null;}
+            if(score>highestScore){highestScore=score;localStorage.setItem('bg_hs',highestScore);}
+            finalScoreEl.textContent=score; highScoreEl.textContent=highestScore;
+            finalButtEl.textContent=`${butterflies.length} / 10`;
+            waspsKilledEl.textContent=totalWaspsKilled;
+            if(butterflies.length===10){gameOverIcon.textContent='🏆✨';gameOverTitle.textContent='الحارس الأسطوري!';playSound('victory');}
+            else if(butterflies.length>5){gameOverIcon.textContent='🥈👏';gameOverTitle.textContent='حميت الأغلبية!';playSound('victory');}
+            else if(butterflies.length>0){gameOverIcon.textContent='🥉👍';gameOverTitle.textContent='نجاة جزئية!';playSound('gameover');}
+            else{gameOverIcon.textContent='💀🥀';gameOverTitle.textContent='انقرضت الفراشات!';playSound('gameover');}
+            gameOverScreen.style.display='flex';
+            setTimeout(()=>{ gameOverScreen.style.opacity='1'; },50);
+        }
+    </script>
+</body>
+</html>
