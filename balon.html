@@ -1,0 +1,625 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لعبة فقع البالونات بالدبوس - Balloon Popper</title>
+    <!-- تضمين مكتبة Tailwind CSS للتصميم العصري -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- خطوط جوجل لتحسين المظهر العربي -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        /* شكل مؤشر الماوس كـ دبوس حاد على الكمبيوتر */
+        .game-area {
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="%23f43f5e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="22" x2="12" y2="10"/><circle cx="12" cy="6" r="4" fill="%23f43f5e"/></svg>') 12 22, auto;
+        }
+        /* حركة تمايل البالونات أثناء الصعود */
+        @keyframes sway {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(15px); }
+        }
+        .swaying {
+            animation: sway 2s ease-in-out infinite;
+        }
+        /* تأثير تلاشي وصعود البالون */
+        @keyframes floatUp {
+            0% { top: 100%; }
+            100% { top: -120px; }
+        }
+        /* تأثير جزيئات الانفجار عند الفرقعة */
+        @keyframes pop-particle {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+        }
+        .particle {
+            pointer-events: none;
+            position: absolute;
+            animation: pop-particle 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+        }
+        /* شكل ذيل البالون (الخيط) */
+        .balloon-string {
+            position: absolute;
+            bottom: -16px;
+            left: 50%;
+            width: 2px;
+            height: 18px;
+            background-color: rgba(255, 255, 255, 0.4);
+            transform: translateX(-50%);
+        }
+        /* قفل البالون من الأسفل (العقدة) */
+        .balloon-knot {
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            width: 8px;
+            height: 6px;
+            background-color: inherit;
+            transform: translateX(-50%) rotate(45deg);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-sky-400 to-indigo-900 min-h-screen flex flex-col items-center justify-between overflow-hidden text-white p-4 select-none">
+
+    <!-- ترويسة اللعبة والعدادات -->
+    <header class="w-full max-w-md bg-white/10 backdrop-blur-md rounded-2xl p-4 flex justify-between items-center border border-white/20 shadow-2xl z-10">
+        <!-- عداد النقاط -->
+        <div class="text-right">
+            <span class="text-xs text-sky-200 block">النقاط الحالية</span>
+            <span id="score" class="text-3xl font-black text-amber-300">0</span>
+        </div>
+        
+        <!-- المؤقت -->
+        <div class="text-center bg-black/30 px-4 py-2 rounded-xl border border-white/10">
+            <span class="text-xs text-slate-200 block">الوقت المتبقي</span>
+            <span id="timer" class="text-2xl font-bold text-rose-400">30s</span>
+        </div>
+
+        <!-- أعلى نتيجة -->
+        <div class="text-left">
+            <span class="text-xs text-sky-200 block">أعلى نتيجة</span>
+            <span id="high-score" class="text-3xl font-black text-yellow-300">0</span>
+        </div>
+    </header>
+
+    <!-- منطقة صعود البالونات الرئيسية -->
+    <main id="game-container" class="game-area relative w-full max-w-md h-[60vh] md:h-[65vh] my-4 bg-sky-950/20 border-4 border-sky-400/30 rounded-3xl overflow-hidden shadow-inner backdrop-blur-sm">
+        <!-- غيوم خلفية لطيفة محلقة -->
+        <div class="absolute inset-0 pointer-events-none opacity-20">
+            <div class="absolute top-10 left-5 w-16 h-8 bg-white rounded-full filter blur-[1px]"></div>
+            <div class="absolute top-28 right-8 w-24 h-10 bg-white rounded-full filter blur-[1px]"></div>
+            <div class="absolute bottom-20 left-12 w-20 h-9 bg-white rounded-full filter blur-[1px]"></div>
+        </div>
+
+        <!-- منطقة تفاعلية لصعود البالونات -->
+        <div id="spawn-area" class="absolute inset-0 w-full h-full"></div>
+
+        <!-- طبقة تأثيرات الجزيئات الناتجة عن الفقع -->
+        <div id="effects-layer" class="absolute inset-0 pointer-events-none z-20"></div>
+    </main>
+
+    <!-- واجهة التحكم السفلية والمؤثرات الصوتية -->
+    <footer class="w-full max-w-md flex flex-col gap-2 z-10">
+        <div class="flex justify-between items-center text-xs text-sky-200 px-2">
+            <span>⚫ احذر بالونات القنابل المتفجرة (-5 نقاط)</span>
+            <span>⭐ البالون الذهبي يعطي 3 نقاط وهو سريع جداً</span>
+        </div>
+        <div class="flex gap-2">
+            <button id="sound-btn" class="bg-white/10 hover:bg-white/20 text-white p-3 rounded-xl transition flex items-center justify-center gap-1 border border-white/10 w-1/3">
+                <span id="sound-icon">🔊</span>
+                <span>الصوت</span>
+            </button>
+            <div class="bg-white/10 text-white p-3 rounded-xl border border-white/10 w-2/3 flex items-center justify-center gap-2">
+                <span class="text-lg">📌</span>
+                <span class="font-bold text-sky-300">السلاح الحالي: الدبوس الذهبي</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- شاشة البداية والتعليمات (Overlay) -->
+    <div id="start-screen" class="fixed inset-0 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center z-50 p-6 text-center">
+        <div class="bg-gradient-to-b from-sky-800 to-indigo-950 p-8 rounded-3xl max-w-sm w-full border border-sky-400/40 shadow-2xl relative animate-fade-in">
+            <!-- أيقونة بالون ودبوس كبيرة متحركة للتزيين -->
+            <div class="w-24 h-24 mx-auto mb-4 bg-sky-900/50 rounded-full flex items-center justify-center border border-sky-400/30 relative">
+                <span class="text-5xl animate-bounce">🎈</span>
+                <span class="text-3xl absolute -top-1 -right-1 rotate-45">📌</span>
+            </div>
+            
+            <h1 class="text-3xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-300">فقع البالونات بالدبوس!</h1>
+            <p class="text-sky-100 text-sm mb-6 leading-relaxed">
+                ستصعد البالونات الملونة من الأسفل! المس البالونات بسرعة لتفرقعها بدبوسك قبل أن تهرب إلى الفضاء.
+            </p>
+
+            <!-- تفاصيل البالونات وقيمتها -->
+            <div class="grid grid-cols-3 gap-2 mb-6 text-xs text-left bg-black/35 p-3 rounded-xl border border-white/10">
+                <div class="flex flex-col items-center text-center">
+                    <span class="text-2xl">🎈</span>
+                    <span class="font-bold text-sky-200">بالون عادي</span>
+                    <span class="text-emerald-400">+1 نقطة</span>
+                </div>
+                <div class="flex flex-col items-center text-center">
+                    <span class="text-2xl animate-pulse">⭐</span>
+                    <span class="font-bold text-yellow-300">ذهبي خارق</span>
+                    <span class="text-yellow-400">+3 نقاط</span>
+                </div>
+                <div class="flex flex-col items-center text-center">
+                    <span class="text-2xl">💣</span>
+                    <span class="font-bold text-rose-300">بالون متفجر</span>
+                    <span class="text-rose-400">-5 نقاط</span>
+                </div>
+            </div>
+
+            <button id="start-game-btn" class="w-full bg-gradient-to-r from-amber-400 to-yellow-300 hover:from-amber-500 hover:to-yellow-400 text-slate-950 font-black py-4 px-6 rounded-2xl shadow-lg transform active:scale-95 transition-all text-xl">
+                ابدأ التحدي الآن! 📌🎈
+            </button>
+        </div>
+    </div>
+
+    <!-- شاشة نهاية اللعبة (Game Over) -->
+    <div id="game-over-screen" class="fixed inset-0 bg-black/95 backdrop-blur-md flex flex-col items-center justify-center z-50 p-6 text-center hidden">
+        <div class="bg-gradient-to-b from-indigo-950 to-sky-950 p-8 rounded-3xl max-w-sm w-full border border-sky-400/40 shadow-2xl">
+            <span class="text-6xl block mb-2">🎈💥</span>
+            <h2 class="text-3xl font-black text-rose-400 mb-1">انتهت اللعبة!</h2>
+            <p class="text-slate-300 text-sm mb-6">لقد كنت ممتازاً في فرقعة البالونات بالدبوس.</p>
+
+            <div class="bg-black/40 p-4 rounded-2xl border border-white/10 mb-6 flex flex-col gap-2">
+                <div class="flex justify-between items-center text-lg">
+                    <span>نقاطك المحققة:</span>
+                    <span id="final-score" class="text-2xl font-black text-yellow-300">0</span>
+                </div>
+                <div class="flex justify-between items-center text-sm text-slate-400">
+                    <span>أعلى نتيجة سابقة:</span>
+                    <span id="prev-high-score" class="font-bold">0</span>
+                </div>
+            </div>
+
+            <button id="restart-game-btn" class="w-full bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-600 hover:to-indigo-600 text-white font-black py-4 px-6 rounded-2xl shadow-lg transform active:scale-95 transition-all text-lg border border-sky-300/20">
+                العب مجدداً 🔄
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // إعدادات اللعبة وثوابتها
+        const GAME_DURATION = 30; // مدة اللعبة بالثواني
+        let score = 0;
+        let timeLeft = GAME_DURATION;
+        let gameActive = false;
+        let soundEnabled = true;
+        let spawnInterval = null;
+        let timerInterval = null;
+        let balloonIdCounter = 0;
+
+        // جلب العناصر الأساسية
+        const scoreEl = document.getElementById('score');
+        const timerEl = document.getElementById('timer');
+        const highScoreEl = document.getElementById('high-score');
+        const finalScoreEl = document.getElementById('final-score');
+        const prevHighScoreEl = document.getElementById('prev-high-score');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const spawnArea = document.getElementById('spawn-area');
+        const effectsLayer = document.getElementById('effects-layer');
+        const soundBtn = document.getElementById('sound-btn');
+        const soundIcon = document.getElementById('sound-icon');
+        const startGameBtn = document.getElementById('start-game-btn');
+        const restartGameBtn = document.getElementById('restart-game-btn');
+
+        // جلب أعلى نتيجة سابقة من الذاكرة المحلية
+        let highScore = parseInt(localStorage.getItem('balloon_high_score')) || 0;
+        highScoreEl.textContent = highScore;
+
+        // إعداد توليد الأصوات التفاعلية برمجياً Web Audio API
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // دالة توليد الأصوات
+        function playSound(type) {
+            if (!soundEnabled) return;
+            
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'pop') {
+                // صوت فرقعة بالون كرتوني سريع وحاد (Pop!)
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.12);
+            } else if (type === 'pop_gold') {
+                // صوت فرقعة بالون ذهبي مميز ورنان متبوع برنين خفيف
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.25);
+            } else if (type === 'bomb') {
+                // صوت انفجار خشن وضخم للبالون القنبلة المهدد
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(10, audioCtx.currentTime + 0.4);
+                
+                // مرشح لجعل الصوت ضخماً مثل الانفجار الخشن
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(200, audioCtx.currentTime);
+                
+                osc.disconnect(gain);
+                osc.connect(filter);
+                filter.connect(gain);
+
+                gain.gain.setValueAtTime(0.6, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } else if (type === 'gameover') {
+                // نغمة كرتونية لنهاية اللعبة
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.6);
+                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.6);
+            }
+        }
+
+        // تفعيل أو كتم الصوت
+        soundBtn.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            if (soundEnabled) {
+                soundIcon.textContent = '🔊';
+                soundBtn.classList.remove('bg-red-950/40', 'border-red-500/30');
+            } else {
+                soundIcon.textContent = '🔇';
+                soundBtn.classList.add('bg-red-950/40', 'border-red-500/30');
+            }
+        });
+
+        // تشغيل اللعبة
+        startGameBtn.addEventListener('click', startGame);
+        restartGameBtn.addEventListener('click', startGame);
+
+        function startGame() {
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            spawnArea.innerHTML = '';
+            effectsLayer.innerHTML = '';
+            score = 0;
+            timeLeft = GAME_DURATION;
+            gameActive = true;
+            
+            scoreEl.textContent = score;
+            timerEl.textContent = `${timeLeft}s`;
+
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            clearInterval(spawnInterval);
+            clearInterval(timerInterval);
+
+            // توليد البالونات بفترات ديناميكية متسارعة تدريجياً
+            spawnInterval = setInterval(() => {
+                if (gameActive) {
+                    spawnBalloon();
+                    // فرصة لظهور بالون إضافي مع تصاعد الصعوبة
+                    if (score > 10 && Math.random() > 0.4) spawnBalloon();
+                    if (score > 25 && Math.random() > 0.35) spawnBalloon();
+                }
+            }, 750);
+
+            // تشغيل العداد التنازلي للعبة
+            timerInterval = setInterval(() => {
+                if (gameActive) {
+                    timeLeft--;
+                    timerEl.textContent = `${timeLeft}s`;
+                    
+                    if (timeLeft <= 5) {
+                        timerEl.classList.add('text-rose-500', 'animate-pulse');
+                    } else {
+                        timerEl.classList.remove('text-rose-500', 'animate-pulse');
+                    }
+
+                    if (timeLeft <= 0) {
+                        endGame();
+                    }
+                }
+            }, 1000);
+        }
+
+        // الألوان الممكنة للبالونات العادية
+        const BALLOON_COLORS = [
+            'from-rose-500 to-rose-700 shadow-rose-500/30',
+            'from-sky-400 to-sky-600 shadow-sky-400/30',
+            'from-emerald-400 to-emerald-600 shadow-emerald-500/30',
+            'from-amber-400 to-amber-600 shadow-amber-500/30',
+            'from-purple-500 to-purple-700 shadow-purple-500/30',
+            'from-pink-400 to-pink-600 shadow-pink-400/30'
+        ];
+
+        // أنواع البالونات المتوفرة ونسب ظهورها وتفاصيلها
+        const BALLOON_TYPES = {
+            NORMAL: 'normal',
+            GOLD: 'gold',
+            BOMB: 'bomb'
+        };
+
+        // دالة توليد البالونات وصعودها للأعلى
+        function spawnBalloon() {
+            if (!gameActive) return;
+
+            // تحديد نوع البالون عشوائياً
+            const rand = Math.random();
+            let type = BALLOON_TYPES.NORMAL;
+            let width = 64; // العرض الافتراضي للبالون
+            let height = 80; // الارتفاع الافتراضي
+            let balloonColorStyle = '';
+            let contentHTML = '';
+
+            if (rand < 0.15) {
+                type = BALLOON_TYPES.GOLD;
+                balloonColorStyle = 'from-yellow-300 via-amber-400 to-yellow-500 shadow-yellow-400/50';
+                width = 54; // أصغر قليلاً وسريعة
+                height = 68;
+                contentHTML = `
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-xl animate-pulse">⭐</span>
+                    </div>
+                `;
+            } else if (rand < 0.3) {
+                type = BALLOON_TYPES.BOMB;
+                balloonColorStyle = 'from-slate-800 to-zinc-950 shadow-black/60 border border-red-500/30';
+                width = 70; // أكبر قليلاً لإغراء اللاعب بضربها بالخطأ
+                height = 86;
+                contentHTML = `
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span class="text-2xl">💣</span>
+                    </div>
+                `;
+            } else {
+                type = BALLOON_TYPES.NORMAL;
+                // اختيار لون عشوائي للبالون العادي
+                balloonColorStyle = BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)];
+            }
+
+            // إنشاء بالون جديد كلياً
+            const balloonId = `balloon-${balloonIdCounter++}`;
+            const balloon = document.createElement('div');
+            balloon.id = balloonId;
+            balloon.className = `absolute select-none swaying cursor-pointer transition-transform duration-150`;
+            
+            // تحديد الحجم والموقع المبدئي في الأسفل خارج الشاشة
+            balloon.style.width = `${width}px`;
+            balloon.style.height = `${height}px`;
+            
+            const containerWidth = spawnArea.clientWidth;
+            const startX = Math.random() * (containerWidth - width - 20) + 10;
+            balloon.style.left = `${startX}px`;
+            balloon.style.top = `${spawnArea.clientHeight}px`; // البداية بالأسفل تماماً
+
+            // بناء الشكل الهندسي للبالون الدائري الأنيق
+            balloon.innerHTML = `
+                <div class="relative w-full h-full rounded-[50%_50%_50%_50%/_60%_60%_40%_40%] bg-gradient-to-b ${balloonColorStyle} shadow-lg">
+                    <!-- تأثير السطوع/الانعكاس الزجاجي الكرتوني الصغير على البالون -->
+                    <div class="absolute top-2 right-4 w-4 h-2 bg-white/40 rounded-full rotate-[25deg]"></div>
+                    <!-- قفل ذيل البالون السفلي -->
+                    <div class="balloon-knot"></div>
+                    <!-- خيط البالون الطويل -->
+                    <div class="balloon-string"></div>
+                    <!-- المحتوى الداخلي إن وُجد -->
+                    ${contentHTML}
+                </div>
+            `;
+
+            // إرفاق البيانات الخاصة بالبالون
+            balloon.dataset.id = balloonId;
+            balloon.dataset.type = type;
+
+            // إسناد سرعة الطيران (Float speed) - كلما زاد مجموع النقاط زادت السرعة الكلية
+            const baseDuration = type === BALLOON_TYPES.GOLD ? 1.6 : (type === BALLOON_TYPES.BOMB ? 3.0 : 4.0);
+            const dynamicDuration = Math.max(1.0, baseDuration - (score * 0.03)); // تتسارع البالونات كلما كسبت نقاطاً
+
+            // تطبيق الحركة عبر ميزات الـ CSS Animation البرمجية
+            balloon.style.animation = `floatUp ${dynamicDuration}s linear forwards`;
+
+            // إضافة تفاعل اللمس والضغط المباشر لفقع البالون بدبوسك
+            const handlePop = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                popBalloon(balloon, e);
+            };
+
+            balloon.addEventListener('mousedown', handlePop);
+            balloon.addEventListener('touchstart', handlePop, { passive: false });
+
+            // إضافة البالون إلى ساحة اللعب
+            spawnArea.appendChild(balloon);
+
+            // تدمير العنصر تلقائياً عند وصوله للأعلى تماماً وخروجه من الإطار
+            balloon.addEventListener('animationend', () => {
+                balloon.remove();
+            });
+        }
+
+        // معالجة فقع البالون بالدبوس
+        function popBalloon(balloonElement, event) {
+            if (!gameActive) return;
+
+            const type = balloonElement.dataset.type;
+            let points = 1;
+
+            if (type === BALLOON_TYPES.GOLD) {
+                points = 3;
+                playSound('pop_gold');
+            } else if (type === BALLOON_TYPES.BOMB) {
+                points = -5;
+                playSound('bomb');
+            } else {
+                playSound('pop');
+            }
+
+            // تحديث النقاط الكلية (مع المحافظة على أن لا تقل عن الصفر)
+            score = Math.max(0, score + points);
+            scoreEl.textContent = score;
+
+            // جلب موضع الضغط النسبي لتوليد جزيئات فقع البالون بدقة هناك
+            let clientX, clientY;
+            if (event.touches && event.touches[0]) {
+                clientX = event.touches[0].clientX;
+                clientY = event.touches[0].clientY;
+            } else {
+                clientX = event.clientX;
+                clientY = event.clientY;
+            }
+
+            const rect = spawnArea.getBoundingClientRect();
+            const hitX = clientX - rect.left;
+            const hitY = clientY - rect.top;
+
+            // توليد جزيئات الانفجار الملونة مكان الفقع
+            createPopParticles(hitX, hitY, type, balloonElement);
+
+            // إزالة البالون المفجوع فوراً دون انتظار أي وقت
+            balloonElement.remove();
+        }
+
+        // توليد تأثير الجزيئات المتطايرة عند فرقعة البالون
+        function createPopParticles(x, y, type, balloonElement) {
+            const particleCount = type === BALLOON_TYPES.BOMB ? 24 : 12;
+            
+            // استخراج الألوان من تدرج البالون لنجعل الجزيئات بنفس اللون الفعلي للبالون لتبدو واقعية!
+            const bgClass = balloonElement.querySelector('div').className;
+            let particleColor = 'bg-rose-500'; // اللون الافتراضي
+
+            if (type === BALLOON_TYPES.GOLD) {
+                particleColor = 'bg-yellow-400';
+            } else if (type === BALLOON_TYPES.BOMB) {
+                particleColor = 'bg-zinc-800';
+            } else {
+                // محاولة استخراج أول لون من تدرج تيلويند
+                const match = bgClass.match(/from-(\w+-\d+)/);
+                if (match && match[1]) {
+                    particleColor = `bg-${match[1]}`;
+                }
+            }
+
+            // إنشاء نص نقر طائر عائم (+1، +3، -5)
+            const textEffect = document.createElement('div');
+            textEffect.className = 'absolute transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-30 font-black text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] transition-all duration-500 ease-out';
+            textEffect.style.left = `${x}px`;
+            textEffect.style.top = `${y}px`;
+
+            if (type === BALLOON_TYPES.BOMB) {
+                textEffect.innerHTML = `<span class="text-rose-500">انفجار! -5 💣</span>`;
+            } else if (type === BALLOON_TYPES.GOLD) {
+                textEffect.innerHTML = `<span class="text-yellow-300">ممتاز! +3 ⭐</span>`;
+            } else {
+                textEffect.innerHTML = `<span class="text-emerald-400">+1 🎈</span>`;
+            }
+
+            effectsLayer.appendChild(textEffect);
+            setTimeout(() => {
+                textEffect.style.transform = 'translate(-50%, -130%) scale(1.1)';
+                textEffect.style.opacity = '0';
+            }, 30);
+            setTimeout(() => textEffect.remove(), 600);
+
+            // توليد الشظايا الصغيرة الدائرية وتشتيتها عشوائياً باتجاهات متعددة
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = `particle rounded-full ${particleColor} z-20`;
+                
+                // تحديد مقاسات عشوائية للشظايا
+                const size = Math.random() * 8 + 4;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+
+                // زاوية تشتيت وجاذبية حركية
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * 100 + 40;
+                const dx = Math.cos(angle) * distance;
+                const dy = Math.sin(angle) * distance;
+
+                // تمرير اتجاهات التشتيت للـ CSS
+                particle.style.setProperty('--dx', `${dx}px`);
+                particle.style.setProperty('--dy', `${dy}px`);
+
+                effectsLayer.appendChild(particle);
+
+                // إزالتها بعد انتهاء الانيميشن الخاص بها
+                setTimeout(() => {
+                    particle.remove();
+                }, 600);
+            }
+        }
+
+        // إنهاء الجولة الحالية وعرض شاشة الإحصاءات والنتيجة النهائية
+        function endGame() {
+            gameActive = false;
+            clearInterval(spawnInterval);
+            clearInterval(timerInterval);
+            playSound('gameover');
+
+            // إخفاء كافة البالونات الطائرة المتبقية في الحال
+            spawnArea.innerHTML = '';
+
+            // حفظ أعلى نتيجة وتحطيم الأرقام القياسية
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('balloon_high_score', highScore);
+                highScoreEl.textContent = highScore;
+            }
+
+            finalScoreEl.textContent = score;
+            prevHighScoreEl.textContent = highScore;
+            gameOverScreen.classList.remove('hidden');
+        }
+
+        // تفاعل دبوس تفاعلي فوري عند الضغط في أي مكان فارغ بالساحة لإعطاء شعور بالطعن بالدبوس
+        spawnArea.addEventListener('mousedown', (e) => {
+            if (e.target === spawnArea && gameActive) {
+                const rect = spawnArea.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+
+                // ومضة دبوس ذهبي سريع في موضع النقر للتأكيد البصري
+                const visualPin = document.createElement('span');
+                visualPin.className = 'absolute pointer-events-none text-2xl z-30 transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300';
+                visualPin.style.left = `${clickX}px`;
+                visualPin.style.top = `${clickY}px`;
+                visualPin.innerHTML = '📌';
+                
+                effectsLayer.appendChild(visualPin);
+                setTimeout(() => {
+                    visualPin.style.opacity = '0';
+                }, 150);
+                setTimeout(() => visualPin.remove(), 450);
+            }
+        });
+    </script>
+</body>
+</html>
+
+```
