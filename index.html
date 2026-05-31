@@ -1,4 +1,4 @@
-``
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -64,7 +64,7 @@
         </div>
     </header>
 
-    <!-- قسم اللعبة المميزة (Hero Section) للعبتك الافتتاحية المثبتة -->
+    <!-- قسم اللعبة المميزة (Hero Section) للألعاب الثلاث النشطة والمثبتة -->
     <section class="relative px-4 py-6 md:py-10 max-w-6xl mx-auto w-full">
         <div class="bg-gradient-to-r from-rose-950/40 via-purple-900/30 to-gray-900 rounded-2xl p-6 border border-rose-500/20 relative overflow-hidden flex flex-col md:flex-row items-center gap-6 shadow-2xl">
             <!-- ديكورات جمالية في الخلفية -->
@@ -72,15 +72,18 @@
             <div class="absolute -left-20 -bottom-20 w-60 h-60 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
 
             <div class="flex-1 space-y-3 text-center md:text-right z-10">
-                <span class="inline-block bg-yellow-500/20 border border-yellow-500 text-yellow-300 text-xs font-bold px-3 py-1 rounded-full animate-pulse">🔥 الألعاب النشطة الآن</span>
-                <h2 class="text-2xl md:text-4xl font-black text-white">حديقتك السحرية في خطر!</h2>
-                <p class="text-xs md:text-sm text-gray-300 max-w-md">العب الآن حارس الفراشات واحمِ الحديقة من هجوم الدبابير الشريرة، أو جرب فقع البالونات الملونة بالدبوس مباشرة من مستودعك الخاص وبأداء فائق السرعة.</p>
-                <div class="pt-2 flex flex-col sm:flex-row gap-2 justify-center md:justify-start">
-                    <button onclick="playGame(1)" class="px-6 py-3 bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-400 hover:to-red-400 text-white font-black rounded-xl shadow-lg shadow-rose-500/20 transform hover:-translate-y-0.5 transition active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm">
-                        <span>العب بالونات بالدبوس 🎈</span>
+                <span class="inline-block bg-yellow-500/20 border border-yellow-500 text-yellow-300 text-xs font-bold px-3 py-1 rounded-full animate-pulse">🔥 ألعابك النشطة الآن على جيت هب</span>
+                <h2 class="text-2xl md:text-4xl font-black text-white">اقضِ على الملل فوراً!</h2>
+                <p class="text-xs md:text-sm text-gray-300 max-w-md">استمتع بتجربة ألعابك الخاصة والمطورة مباشرة من مستودعك: خبط البعوض المزعج، حارس الفراشات السحرية، أو فقع البالونات الملونة بالدبوس بلمسة واحدة وسرعة فائقة.</p>
+                <div class="pt-2 grid grid-cols-1 sm:grid-cols-3 gap-2 justify-center md:justify-start">
+                    <button onclick="playGame(1)" class="px-4 py-2.5 bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white font-bold rounded-xl shadow-lg shadow-rose-500/20 transform hover:-translate-y-0.5 transition active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm">
+                        <span>البالونات بالدبوس 🎈</span>
                     </button>
-                    <button onclick="playGame(2)" class="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black rounded-xl shadow-lg shadow-emerald-500/20 transform hover:-translate-y-0.5 transition active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm">
-                        <span>العب حارس الفراشات 🦋</span>
+                    <button onclick="playGame(2)" class="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transform hover:-translate-y-0.5 transition active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm">
+                        <span>حارس الفراشات 🦋</span>
+                    </button>
+                    <button onclick="playGame(3)" class="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-500 hover:to-orange-400 text-white font-bold rounded-xl shadow-lg shadow-amber-500/20 transform hover:-translate-y-0.5 transition active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm">
+                        <span>خبط البعوض 🦟</span>
                     </button>
                 </div>
             </div>
@@ -188,10 +191,10 @@
         <div class="flex-1 flex items-center justify-center p-0 relative w-full h-full bg-black">
             <!-- شاشة تحميل سحابية أنيقة تظهر عند تهيئة اللعبة -->
             <div id="loading-screen" class="absolute w-full max-w-sm bg-gray-950 rounded-2xl p-8 border border-gray-800 text-center space-y-6 z-10 transition-opacity duration-300">
-                <div class="text-5xl animate-bounce">🦋</div>
+                <div id="modal-loading-emoji" class="text-5xl animate-bounce">🦟</div>
                 <div>
                     <h4 class="text-sm font-black text-white">جاري الاتصال بـ GitHub Pages...</h4>
-                    <p class="text-[11px] text-gray-400 mt-1">تجهيز بيئة اللعب الفورية السحابة</p>
+                    <p class="text-[11px] text-gray-400 mt-1">تجهيز بيئة اللعب الفورية السريعة</p>
                 </div>
                 <div class="w-full bg-gray-900 h-2 rounded-full overflow-hidden">
                     <div id="loading-bar" class="bg-gradient-to-r from-rose-500 to-red-500 h-full w-0 transition-all duration-150"></div>
@@ -247,113 +250,113 @@
         const gamesData = [
             {
                 id: 1,
-                title: "فقع البالونات بالدبوس", // اسم اللعبة الذي يظهر للمستخدم
-                category: "سرعة", // تصنيف اللعبة
-                icon: "🎈", // الأيقونة التعبيرية
-                fileName: "balon.html", // اسم ملف اللعبة الحقيقي في مستودعك على جيت هب
+                title: "فقع البالونات بالدبوس", // اسم اللعبة الأول المكتمل
+                category: "سرعة", 
+                icon: "🎈", 
+                fileName: "balon.html", // الرابط الفعلي في مستودعك
                 rating: 5.0,
                 visits: "145K",
-                desc: "لعبتك الحصرية والممتعة! افقع البالونات الملونة والذهبية قبل الهروب واستمتع بصوت الفقع وتجنب القنابل.",
+                desc: "لعبتك الحصرية والممتعة! افقع البالونات الملونة والذهبية قبل الهروب واستمتع بصوت الفقع وتجنب القنابل الموقوتة.",
                 gradient: "from-rose-500 to-red-500"
             },
             {
                 id: 2,
-                title: "حارس الفراشات", // اللعبة الثانية النشطة
+                title: "حارس الفراشات", // اللعبة الثانية المكتملة
                 category: "أكشن",
-                icon: "🦋", // أيقونة الفراشة المناسبة تماماً للعبة
-                fileName: "haris.html", // الرابط الفعلي للملف الحقيقي على جيت هب الخاص بك
+                icon: "🦋", 
+                fileName: "haris.html", // الرابط الفعلي في مستودعك
                 rating: 4.9,
                 visits: "115K",
-                desc: "تقمص دور حارس الفراشات البطل! اقضِ على الدبابير الشريرة المتسللة بسرعة وبمختلف الوسائل قبل أن تقضي على الفراشات الجميلة في الحديقة السحرية.",
+                desc: "تقمص دور حارس الفراشات البطل! اقضِ على الدبابير الشريرة المتسللة بسرعة قبل أن تقضي على الفراشات الجميلة في الحديقة السحرية.",
                 gradient: "from-emerald-500 to-teal-500"
             },
             {
                 id: 3,
+                title: "خبط البعوض المزعج", // اللعبة الثالثة الجديدة والنشطة بالكامل!
+                category: "سرعة",
+                icon: "🦟", // أيقونة البعوض التعبيرية المتوافقة تماماً
+                fileName: "ba3odh.html", // الرابط الفعلي الجديد الخاص بك على جيت هب
+                rating: 4.8,
+                visits: "95K",
+                desc: "اقضِ على البعوض المزعج بضربات خاطفة وسريعة قبل أن يقوم بقرصك ويقلل من نقاط صحتك في هذه الغابة الاستوائية الحارة!",
+                gradient: "from-amber-600 to-orange-500"
+            },
+            {
+                id: 4,
                 title: "تحدي الذاكرة السريع",
                 category: "ذكاء",
                 icon: "🧠",
-                fileName: "memory.html", // قم بتعديل هذا الاسم إذا كان ملف اللعبة في GitHub له اسم آخر
+                fileName: "memory.html", // للتعديل والتجهيز مستقبلاً
                 rating: 4.7,
                 visits: "35K",
                 desc: "طابق الرموز والبطاقات المتشابهة لتجاوز المراحل بأقل عدد حركات ممكن في أسرع وقت.",
                 gradient: "from-blue-500 to-indigo-500"
             },
             {
-                id: 4,
+                id: 5,
                 title: "صائد الكرات الملونة",
                 category: "سرعة",
                 icon: "🔴",
-                fileName: "clicker.html", // يمكنك تعديله لأي اسم ملف آخر قمت برفعه
+                fileName: "clicker.html", 
                 rating: 4.5,
                 visits: "40K",
-                desc: "اصطد الكرات الملونة الطائرة لجمع النقاط وتحدي سرعتك قبل انتهاء الوقت المخصص!",
+                desc: "اصطد الكرات الملونة الطائرة لجمع النقاط وتحدي سرعتك قبل انتهاء الوقت المخصص للعب!",
                 gradient: "from-purple-500 to-pink-500"
             },
             {
-                id: 5,
+                id: 6,
                 title: "سباق السيارات السريع",
                 category: "سرعة",
                 icon: "🏎️",
-                fileName: "car-race.html", // قم بتعديل هذا الاسم عند رفع لعبة سباق السيارات
+                fileName: "car-race.html", 
                 rating: 4.9,
                 visits: "98K",
                 desc: "تسابق على حلبة تفاعلية سريعة وتفوق على كافة المتنافسين الأقوياء وتجاوز العقبات بحرية.",
                 gradient: "from-yellow-500 to-orange-500"
             },
             {
-                id: 6,
+                id: 7,
                 title: "تحدي تفادي العقبات",
                 category: "أكشن",
                 icon: "🛸",
-                fileName: "dodge.html", // قم بتعديله لاسم ملف لعبة تفادي العقبات الخاصة بك
+                fileName: "dodge.html", 
                 rating: 4.4,
                 visits: "12K",
                 desc: "حلّق بمركبتك الفضائية وتفادَ النيازك والكتل المدمرة الطائرة لتجميع أكبر عدد نقاط.",
                 gradient: "from-purple-500 to-indigo-600"
             },
             {
-                id: 7,
+                id: 8,
                 title: "برج الكتل المتطابقة",
                 category: "ذكاء",
                 icon: "🧱",
-                fileName: "tower.html", // عدل الاسم هنا ليتطابق مع مستودعك
+                fileName: "tower.html", 
                 rating: 4.3,
                 visits: "8K",
-                desc: "قم ببناء أعلى برج ممكن عبر محاذاة الكتل بدقة وسرعة متوازنة لتفادي السقوط.",
+                desc: "قم ببناء أعلى برج ممكن عبر محاذاة الكتل بدقة وسرعة متوازنة لتفادي السقوط والانهيار.",
                 gradient: "from-amber-600 to-red-600"
             },
             {
-                id: 8,
+                id: 9,
                 title: "صياد الجواهر الأثرية",
                 category: "أكشن",
                 icon: "💎",
-                fileName: "gems.html", // عدل الاسم هنا ليتطابق مع مستودعك
+                fileName: "gems.html", 
                 rating: 4.6,
                 visits: "22K",
-                desc: "احفر في أعماق المنجم المظلم واجمع الأحجار الكريمة والجواهر السحرية الملونة والنادرة.",
+                desc: "احفر في أعماق المنجم المظلم واجمع الأحجار الكريمة والجواهر السحرية الملونة والنادرة والثمينة.",
                 gradient: "from-cyan-500 to-teal-500"
             },
             {
-                id: 9,
+                id: 10,
                 title: "متاهة الهروب الصعبة",
                 category: "أكشن",
                 icon: "🏃‍♂️",
-                fileName: "maze.html", // عدل الاسم هنا ليتطابق مع مستودعك
+                fileName: "maze.html", 
                 rating: 4.2,
                 visits: "15K",
-                desc: "حاول حل المتاهات والمسارات المتنوعة للهروب والوصول لنقطة النهاية بنجاح وأمان.",
+                desc: "حاول حل المتاهات والمسارات المتنوعة للهروب والوصول لنقطة النهاية بنجاح وأمان تام.",
                 gradient: "from-slate-600 to-zinc-800"
-            },
-            {
-                id: 10,
-                title: "تحدي الأسئلة السريعة",
-                category: "ذكاء",
-                icon: "❓",
-                fileName: "quiz.html", // عدل الاسم هنا ليتطابق مع مستودعك
-                rating: 4.7,
-                visits: "60K",
-                desc: "اختبر معلوماتك العامة بأسئلة ثقافية متنوعة وممتعة وسريعة في مختلف المجالات والعلوم.",
-                gradient: "from-fuchsia-500 to-pink-600"
             }
         ];
 
@@ -533,6 +536,7 @@
             document.getElementById('modal-game-name').innerText = game.title;
             document.getElementById('modal-game-category').innerText = `تصنيف: ${game.category}`;
             document.getElementById('footer-game-path').innerText = `web88/${game.fileName}`;
+            document.getElementById('modal-loading-emoji').innerText = game.icon;
             
             document.getElementById('game-modal').classList.remove('hidden');
             document.getElementById('loading-screen').classList.remove('hidden');
@@ -599,5 +603,4 @@
     </script>
 </body>
 </html>
-
 
