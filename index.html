@@ -5,6 +5,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>بوابة ألعاب العرب | منصة الألعاب السحابية الفورية</title>
+    
+    <!-- =========================================================================
+         إعدادات أيقونة الموقع وشاشة الجوال الرئيسية (حل مشكلة حرف "ب")
+         ========================================================================= -->
+    <!-- أيقونة أجهزة الـ iOS (iPhone & iPad) عند الإضافة للشاشة الرئيسية -->
+    <link rel="apple-touch-icon" sizes="180x180" href="https://img.icons8.com/fluent/512/flat-tab.png">
+    <!-- أيقونة المتصفح العادية وأجهزة الأندرويد -->
+    <link rel="icon" type="image/png" sizes="32x32" href="https://img.icons8.com/fluent/192/flat-tab.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://img.icons8.com/fluent/96/flat-tab.png">
+    
+    <!-- تحديد اسم التطبيق عند التثبيت ولون شريط المتصفح باللون الداكن المتناسق -->
+    <meta name="apple-mobile-web-app-title" content="ألعاب العرب">
+    <meta name="application-name" content="ألعاب العرب">
+    <meta name="theme-color" content="#0d0e12">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <!-- تضمين مكتبة Tailwind CSS للتصميم العصري المتجاوب -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- خط القاهرة المتميز للغة العربية -->
@@ -191,10 +208,10 @@
         <div class="flex-1 flex items-center justify-center p-0 relative w-full h-full bg-black">
             <!-- شاشة تحميل سحابية أنيقة تظهر عند تهيئة اللعبة -->
             <div id="loading-screen" class="absolute w-full max-w-sm bg-gray-950 rounded-2xl p-8 border border-gray-800 text-center space-y-6 z-10 transition-opacity duration-300">
-                <div id="modal-loading-emoji" class="text-5xl animate-bounce">🦟</div>
+                <div id="modal-loading-emoji" class="text-5xl animate-bounce">🦋</div>
                 <div>
                     <h4 class="text-sm font-black text-white">جاري الاتصال بـ GitHub Pages...</h4>
-                    <p class="text-[11px] text-gray-400 mt-1">تجهيز بيئة اللعب الفورية السريعة</p>
+                    <p class="text-[11px] text-gray-400 mt-1">تجهيز بيئة اللعب الفورية السحابة</p>
                 </div>
                 <div class="w-full bg-gray-900 h-2 rounded-full overflow-hidden">
                     <div id="loading-bar" class="bg-gradient-to-r from-rose-500 to-red-500 h-full w-0 transition-all duration-150"></div>
@@ -603,4 +620,5 @@
     </script>
 </body>
 </html>
+
 
