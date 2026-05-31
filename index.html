@@ -1,0 +1,603 @@
+```html
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>بوابة ألعاب العرب | منصة الألعاب السحابية الفورية</title>
+    <!-- تضمين مكتبة Tailwind CSS للتصميم العصري المتجاوب -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- خط القاهرة المتميز للغة العربية -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- أيقونات FontAwesome للأزرار والبطاقات التفاعلية -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #0d0e12;
+            color: #f3f4f6;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        /* إخفاء شريط التمرير الافتراضي لجمال وتناسق التصميم */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0d0e12;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f43f5e;
+            border-radius: 10px;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col pb-20 md:pb-6 overflow-x-hidden">
+
+    <!-- شريط التنقل العلوي -->
+    <header class="sticky top-0 z-40 bg-[#12131a]/95 backdrop-blur-md border-b border-gray-800 px-4 py-3 shadow-lg">
+        <div class="max-w-6xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-500 to-red-600 flex items-center justify-center text-white font-extrabold text-xl shadow-lg shadow-rose-500/30">
+                    🎮
+                </div>
+                <div>
+                    <h1 class="text-lg font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-red-400">بوابة الألعاب</h1>
+                    <p class="text-[10px] text-gray-400 font-bold">بوابتك السحابية على GitHub</p>
+                </div>
+            </div>
+
+            <!-- زر المفضلة السريع للوصول السهل للجوال -->
+            <button onclick="toggleFavsFilter()" id="fav-filter-btn" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-red-500/20 text-gray-300 hover:text-red-400 border border-gray-700 transition duration-300 text-xs font-semibold">
+                <i class="fa-solid fa-heart text-red-500"></i>
+                <span>المفضلة</span>
+                <span id="fav-count" class="bg-gray-950 text-white text-[10px] px-2 py-0.5 rounded-full">0</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- قسم اللعبة المميزة (Hero Section) للعبتك الافتتاحية المثبتة -->
+    <section class="relative px-4 py-6 md:py-10 max-w-6xl mx-auto w-full">
+        <div class="bg-gradient-to-r from-rose-950/40 via-purple-900/30 to-gray-900 rounded-2xl p-6 border border-rose-500/20 relative overflow-hidden flex flex-col md:flex-row items-center gap-6 shadow-2xl">
+            <!-- ديكورات جمالية في الخلفية -->
+            <div class="absolute -right-20 -top-20 w-60 h-60 bg-rose-600/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -left-20 -bottom-20 w-60 h-60 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="flex-1 space-y-3 text-center md:text-right z-10">
+                <span class="inline-block bg-yellow-500/20 border border-yellow-500 text-yellow-300 text-xs font-bold px-3 py-1 rounded-full animate-pulse">🔥 الألعاب النشطة الآن</span>
+                <h2 class="text-2xl md:text-4xl font-black text-white">حديقتك السحرية في خطر!</h2>
+                <p class="text-xs md:text-sm text-gray-300 max-w-md">العب الآن حارس الفراشات واحمِ الحديقة من هجوم الدبابير الشريرة، أو جرب فقع البالونات الملونة بالدبوس مباشرة من مستودعك الخاص وبأداء فائق السرعة.</p>
+                <div class="pt-2 flex flex-col sm:flex-row gap-2 justify-center md:justify-start">
+                    <button onclick="playGame(1)" class="px-6 py-3 bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-400 hover:to-red-400 text-white font-black rounded-xl shadow-lg shadow-rose-500/20 transform hover:-translate-y-0.5 transition active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm">
+                        <span>العب بالونات بالدبوس 🎈</span>
+                    </button>
+                    <button onclick="playGame(2)" class="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-black rounded-xl shadow-lg shadow-emerald-500/20 transform hover:-translate-y-0.5 transition active:scale-95 flex items-center justify-center gap-2 text-xs sm:text-sm">
+                        <span>العب حارس الفراشات 🦋</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- لوحة نتائج البالونات العالمية ومؤشر السيرفر السحابي -->
+            <div class="relative w-full md:w-72 h-40 bg-gray-950/80 rounded-xl border border-gray-800 flex flex-col items-center justify-center p-4 z-10 shadow-inner text-center">
+                <div class="flex items-center gap-2 mb-2 text-green-400 text-xs font-bold">
+                    <span class="w-2.5 h-2.5 rounded-full bg-green-500 animate-ping"></span>
+                    <span>مزامنة جيت هب نشطة</span>
+                </div>
+                <p class="text-xs text-gray-400 leading-relaxed px-2">الألعاب مستضافة وتعمل بالكامل من خوادم GitHub Pages فائقة السرعة.</p>
+                <div class="mt-3 text-[10px] text-gray-500 font-mono break-all px-2 bg-black/40 rounded py-1 border border-gray-800">
+                    azmn00008888-design/web88
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- شريط البحث والتصنيفات للألعاب -->
+    <div class="px-4 py-2 max-w-6xl mx-auto w-full space-y-4">
+        <!-- مربع البحث الفوري -->
+        <div class="relative">
+            <span class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400">
+                <i class="fa-solid fa-magnifying-glass text-sm"></i>
+            </span>
+            <input type="text" id="search-input" oninput="filterGames()" placeholder="ابحث عن أي لعبة في مستودعك..." class="w-full pl-4 pr-11 py-3 bg-gray-900 border border-gray-800 focus:border-rose-500 focus:ring-1 focus:ring-rose-500 rounded-xl text-xs text-gray-200 placeholder-gray-500 focus:outline-none transition duration-300">
+        </div>
+
+        <!-- أزرار التصنيفات السريعة المتوافقة مع الجوال -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar scrollbar-none">
+            <button onclick="setCategory('الكل')" class="category-btn px-4 py-2 bg-rose-600 text-white border border-rose-500 text-xs font-bold rounded-full whitespace-nowrap transition duration-200">الكل 🎮</button>
+            <button onclick="setCategory('سرعة')" class="category-btn px-4 py-2 bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white border border-gray-800 text-xs font-bold rounded-full whitespace-nowrap transition duration-200">سرعة وتركيز ⚡</button>
+            <button onclick="setCategory('ذكاء')" class="category-btn px-4 py-2 bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white border border-gray-800 text-xs font-bold rounded-full whitespace-nowrap transition duration-200">ألعاب ذكاء 🧠</button>
+            <button onclick="setCategory('أكشن')" class="category-btn px-4 py-2 bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white border border-gray-800 text-xs font-bold rounded-full whitespace-nowrap transition duration-200">ألعاب أكشن 💥</button>
+        </div>
+    </div>
+
+    <!-- شبكة الألعاب الـ 10 المميزة -->
+    <main class="flex-1 px-4 py-4 max-w-6xl mx-auto w-full">
+        <!-- رسالة لعدم وجود نتائج عند البحث -->
+        <div id="no-games-msg" class="hidden text-center py-12 space-y-4">
+            <div class="text-5xl">🕵️‍♂️</div>
+            <h3 class="text-sm font-bold text-gray-400">لم نجد أي ألعاب تطابق بحثك!</h3>
+            <button onclick="resetSearchAndFilter()" class="text-xs text-rose-400 hover:underline">عرض جميع الألعاب</button>
+        </div>
+
+        <!-- شبكة عرض الألعاب الـ 10 السحابية -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-5" id="games-grid">
+            <!-- يتم التوليد التلقائي هنا عبر جافا سكريبت -->
+        </div>
+    </main>
+
+    <!-- الفوتر وشريط التنقل السفلي للجوال -->
+    <footer class="bg-[#0b0c10] border-t border-gray-900 py-6 text-center text-xs text-gray-500 mt-8 hidden md:block">
+        <p class="font-bold">بوابة ألعاب العرب السحابية المتكاملة © 2026</p>
+        <p class="text-[10px] text-gray-600 mt-1">مستضافة بالكامل على GitHub Pages</p>
+    </footer>
+
+    <!-- شريط التنقل السفلي الفوري للجوال -->
+    <div class="fixed bottom-0 left-0 right-0 h-16 bg-[#12131a]/95 backdrop-blur-md border-t border-gray-800 flex items-center justify-around px-4 md:hidden z-35 shadow-xl">
+        <button onclick="resetSearchAndFilter(); scrollToTop();" class="flex flex-col items-center text-rose-500 transition">
+            <i class="fa-solid fa-house text-lg"></i>
+            <span class="text-[9px] mt-1 font-bold">الرئيسية</span>
+        </button>
+        <button onclick="focusSearch()" class="flex flex-col items-center text-gray-400 hover:text-rose-500 transition">
+            <i class="fa-solid fa-magnifying-glass text-lg"></i>
+            <span class="text-[9px] mt-1 font-bold">البحث</span>
+        </button>
+        <button onclick="toggleFavsFilter()" class="flex flex-col items-center text-gray-400 hover:text-rose-500 transition relative">
+            <i class="fa-solid fa-heart text-lg"></i>
+            <span class="text-[9px] mt-1 font-bold">المفضلة</span>
+            <span id="nav-fav-badge" class="hidden absolute top-0 right-2 w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+        </button>
+        <button onclick="showInfoModal()" class="flex flex-col items-center text-gray-400 hover:text-rose-500 transition">
+            <i class="fa-solid fa-circle-info text-lg"></i>
+            <span class="text-[9px] mt-1 font-bold">معلومات</span>
+        </button>
+    </div>
+
+    <!-- نافذة منبثقة تفاعلية بملء الشاشة لتشغيل الألعاب عبر الـ Iframe السحابي -->
+    <div id="game-modal" class="fixed inset-0 bg-black/98 z-50 hidden flex flex-col justify-between overflow-hidden">
+        <!-- ترويسة شاشة اللعبة النشطة والتحكم بالإغلاق -->
+        <header class="bg-gray-950 border-b border-gray-900 px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span id="modal-game-icon" class="text-2xl">🎮</span>
+                <div>
+                    <h3 id="modal-game-name" class="font-black text-xs sm:text-sm text-white">اسم اللعبة</h3>
+                    <p id="modal-game-category" class="text-[9px] sm:text-[10px] text-rose-400 font-bold">تصنيف اللعبة</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <!-- زر إعادة تحميل إطار اللعبة (Refresh) لحل أي تعليق في ثانية واحدة -->
+                <button onclick="reloadActiveGame()" title="إعادة تشغيل اللعبة" class="w-9 h-9 rounded-lg bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center transition border border-gray-800 text-xs">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+                <!-- زر الإغلاق والعودة للبوابة الرئيسية -->
+                <button onclick="closeGameModal()" title="إغلاق اللعبة" class="w-9 h-9 rounded-lg bg-gray-900 hover:bg-red-500/20 text-gray-400 hover:text-red-500 flex items-center justify-center transition active:scale-95 text-lg border border-gray-800">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- منطقة اللعبة السحابية (تتحرك بمرونة كاملة وملء المساحة للأجهزة المحمولة) -->
+        <div class="flex-1 flex items-center justify-center p-0 relative w-full h-full bg-black">
+            <!-- شاشة تحميل سحابية أنيقة تظهر عند تهيئة اللعبة -->
+            <div id="loading-screen" class="absolute w-full max-w-sm bg-gray-950 rounded-2xl p-8 border border-gray-800 text-center space-y-6 z-10 transition-opacity duration-300">
+                <div class="text-5xl animate-bounce">🦋</div>
+                <div>
+                    <h4 class="text-sm font-black text-white">جاري الاتصال بـ GitHub Pages...</h4>
+                    <p class="text-[11px] text-gray-400 mt-1">تجهيز بيئة اللعب الفورية السحابة</p>
+                </div>
+                <div class="w-full bg-gray-900 h-2 rounded-full overflow-hidden">
+                    <div id="loading-bar" class="bg-gradient-to-r from-rose-500 to-red-500 h-full w-0 transition-all duration-150"></div>
+                </div>
+            </div>
+
+            <!-- إطار iframe سحابي تفاعلي ذكي لتشغيل ألعاب GitHub بأبعاد مرنة كاملة -->
+            <div id="iframe-game-container" class="hidden w-full h-full bg-black relative">
+                <iframe id="game-iframe" src="" class="w-full h-full border-none" allow="autoplay; gamepad; keyboard" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
+            </div>
+        </div>
+
+        <!-- تذييل معلومات التشغيل من المستودع -->
+        <footer class="bg-gray-950 border-t border-gray-950 px-4 py-2 text-center text-[9px] text-gray-600 flex justify-between items-center font-mono">
+            <span>مستضاف سحابياً بواسطة GitHub Pages</span>
+            <span id="footer-game-path">web88/game.html</span>
+        </footer>
+    </div>
+
+    <!-- نافذة معلومات البوابة -->
+    <div id="info-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-2xl relative">
+            <button onclick="closeInfoModal()" class="absolute top-4 left-4 text-gray-400 hover:text-white transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <div class="text-center space-y-2">
+                <span class="text-4xl">ℹ️</span>
+                <h3 class="text-lg font-black text-white">بوابة ألعاب العرب السحابية</h3>
+                <p class="text-xs text-gray-400 leading-relaxed">بوابتك الترفيهية الفورية التي تدمج أرقى ألعاب الويب الخفيفة والسريعة المناسبة للهواتف والمكتب مباشرة من مستودع GitHub الخاص بك.</p>
+            </div>
+            <button onclick="closeInfoModal()" class="w-full py-2 bg-gray-800 hover:bg-gray-700 text-xs font-bold text-white rounded-xl transition">حسناً</button>
+        </div>
+    </div>
+
+    <!-- تأثير التنبيه العائم السفلي (Toast) -->
+    <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-gray-900 border border-gray-800 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 opacity-0 pointer-events-none transform translate-y-2 z-55 flex items-center gap-2">
+        <span id="toast-icon">✨</span>
+        <span id="toast-msg">تنبيه للبوابة</span>
+    </div>
+
+    <!-- محرك التحكم وتوليد الألعاب السحابية برمجياً بالكامل -->
+    <script>
+        // =========================================================================
+        //  رابط المستودع الرئيسي الخاص بك على جيت هب (يرجى التأكد من نهايته بـ /)
+        // =========================================================================
+        const BASE_GITHUB_URL = "https://azmn00008888-design.github.io/web88/";
+
+        // =========================================================================
+        //  مصفوفة الألعاب الـ 10 السحابية
+        //  يمكنك هنا تحرير الأسماء (title)، الأيقونات (icon)، وأسماء الملفات (fileName)
+        //  لتتناسب تماماً مع الملفات المرفوعة في مستودعك على GitHub!
+        // =========================================================================
+        const gamesData = [
+            {
+                id: 1,
+                title: "فقع البالونات بالدبوس", // اسم اللعبة الذي يظهر للمستخدم
+                category: "سرعة", // تصنيف اللعبة
+                icon: "🎈", // الأيقونة التعبيرية
+                fileName: "balon.html", // اسم ملف اللعبة الحقيقي في مستودعك على جيت هب
+                rating: 5.0,
+                visits: "145K",
+                desc: "لعبتك الحصرية والممتعة! افقع البالونات الملونة والذهبية قبل الهروب واستمتع بصوت الفقع وتجنب القنابل.",
+                gradient: "from-rose-500 to-red-500"
+            },
+            {
+                id: 2,
+                title: "حارس الفراشات", // اللعبة الثانية النشطة
+                category: "أكشن",
+                icon: "🦋", // أيقونة الفراشة المناسبة تماماً للعبة
+                fileName: "haris.html", // الرابط الفعلي للملف الحقيقي على جيت هب الخاص بك
+                rating: 4.9,
+                visits: "115K",
+                desc: "تقمص دور حارس الفراشات البطل! اقضِ على الدبابير الشريرة المتسللة بسرعة وبمختلف الوسائل قبل أن تقضي على الفراشات الجميلة في الحديقة السحرية.",
+                gradient: "from-emerald-500 to-teal-500"
+            },
+            {
+                id: 3,
+                title: "تحدي الذاكرة السريع",
+                category: "ذكاء",
+                icon: "🧠",
+                fileName: "memory.html", // قم بتعديل هذا الاسم إذا كان ملف اللعبة في GitHub له اسم آخر
+                rating: 4.7,
+                visits: "35K",
+                desc: "طابق الرموز والبطاقات المتشابهة لتجاوز المراحل بأقل عدد حركات ممكن في أسرع وقت.",
+                gradient: "from-blue-500 to-indigo-500"
+            },
+            {
+                id: 4,
+                title: "صائد الكرات الملونة",
+                category: "سرعة",
+                icon: "🔴",
+                fileName: "clicker.html", // يمكنك تعديله لأي اسم ملف آخر قمت برفعه
+                rating: 4.5,
+                visits: "40K",
+                desc: "اصطد الكرات الملونة الطائرة لجمع النقاط وتحدي سرعتك قبل انتهاء الوقت المخصص!",
+                gradient: "from-purple-500 to-pink-500"
+            },
+            {
+                id: 5,
+                title: "سباق السيارات السريع",
+                category: "سرعة",
+                icon: "🏎️",
+                fileName: "car-race.html", // قم بتعديل هذا الاسم عند رفع لعبة سباق السيارات
+                rating: 4.9,
+                visits: "98K",
+                desc: "تسابق على حلبة تفاعلية سريعة وتفوق على كافة المتنافسين الأقوياء وتجاوز العقبات بحرية.",
+                gradient: "from-yellow-500 to-orange-500"
+            },
+            {
+                id: 6,
+                title: "تحدي تفادي العقبات",
+                category: "أكشن",
+                icon: "🛸",
+                fileName: "dodge.html", // قم بتعديله لاسم ملف لعبة تفادي العقبات الخاصة بك
+                rating: 4.4,
+                visits: "12K",
+                desc: "حلّق بمركبتك الفضائية وتفادَ النيازك والكتل المدمرة الطائرة لتجميع أكبر عدد نقاط.",
+                gradient: "from-purple-500 to-indigo-600"
+            },
+            {
+                id: 7,
+                title: "برج الكتل المتطابقة",
+                category: "ذكاء",
+                icon: "🧱",
+                fileName: "tower.html", // عدل الاسم هنا ليتطابق مع مستودعك
+                rating: 4.3,
+                visits: "8K",
+                desc: "قم ببناء أعلى برج ممكن عبر محاذاة الكتل بدقة وسرعة متوازنة لتفادي السقوط.",
+                gradient: "from-amber-600 to-red-600"
+            },
+            {
+                id: 8,
+                title: "صياد الجواهر الأثرية",
+                category: "أكشن",
+                icon: "💎",
+                fileName: "gems.html", // عدل الاسم هنا ليتطابق مع مستودعك
+                rating: 4.6,
+                visits: "22K",
+                desc: "احفر في أعماق المنجم المظلم واجمع الأحجار الكريمة والجواهر السحرية الملونة والنادرة.",
+                gradient: "from-cyan-500 to-teal-500"
+            },
+            {
+                id: 9,
+                title: "متاهة الهروب الصعبة",
+                category: "أكشن",
+                icon: "🏃‍♂️",
+                fileName: "maze.html", // عدل الاسم هنا ليتطابق مع مستودعك
+                rating: 4.2,
+                visits: "15K",
+                desc: "حاول حل المتاهات والمسارات المتنوعة للهروب والوصول لنقطة النهاية بنجاح وأمان.",
+                gradient: "from-slate-600 to-zinc-800"
+            },
+            {
+                id: 10,
+                title: "تحدي الأسئلة السريعة",
+                category: "ذكاء",
+                icon: "❓",
+                fileName: "quiz.html", // عدل الاسم هنا ليتطابق مع مستودعك
+                rating: 4.7,
+                visits: "60K",
+                desc: "اختبر معلوماتك العامة بأسئلة ثقافية متنوعة وممتعة وسريعة في مختلف المجالات والعلوم.",
+                gradient: "from-fuchsia-500 to-pink-600"
+            }
+        ];
+
+        // =========================================================================
+        //  محركات تشغيل البوابة وإدارة الفلترة والبحث
+        // =========================================================================
+        let favoriteGames = JSON.parse(localStorage.getItem('portal_favorites_v4')) || [];
+        let currentCategory = 'الكل';
+        let searchQuery = '';
+        let onlyShowFavorites = false;
+
+        // إظهار التنبيهات العائمة
+        function showToast(msg, icon = '✨') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-icon').innerText = icon;
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none');
+            }, 2000);
+        }
+
+        // تشغيل وتهيئة الصفحة
+        window.addEventListener('DOMContentLoaded', () => {
+            renderGames();
+            updateFavBadge();
+        });
+
+        // بناء وعرض شبكة الألعاب الـ 10
+        function renderGames() {
+            const grid = document.getElementById('games-grid');
+            grid.innerHTML = '';
+            
+            const filtered = gamesData.filter(game => {
+                const matchCategory = currentCategory === 'الكل' || game.category === currentCategory;
+                const matchSearch = game.title.includes(searchQuery) || game.desc.includes(searchQuery);
+                const matchFav = !onlyShowFavorites || favoriteGames.includes(game.id);
+                return matchCategory && matchSearch && matchFav;
+            });
+
+            if (filtered.length === 0) {
+                document.getElementById('no-games-msg').classList.remove('hidden');
+                return;
+            } else {
+                document.getElementById('no-games-msg').classList.add('hidden');
+            }
+
+            filtered.forEach(game => {
+                const isFav = favoriteGames.includes(game.id);
+                const card = document.createElement('div');
+                card.className = "bg-gray-900/80 backdrop-blur-sm border border-gray-800 rounded-2xl overflow-hidden shadow-lg hover:border-rose-500/50 transition duration-300 flex flex-col justify-between group transform hover:-translate-y-1";
+                
+                card.innerHTML = `
+                    <div class="relative">
+                        <div class="h-20 sm:h-24 w-full bg-gradient-to-tr ${game.gradient} flex items-center justify-center relative overflow-hidden">
+                            <span class="text-3xl sm:text-4xl filter drop-shadow-md transform group-hover:scale-125 transition duration-300 z-10">${game.icon}</span>
+                            <div class="absolute inset-0 bg-black/10 opacity-60"></div>
+                            <span class="absolute top-1.5 right-1.5 bg-black/40 text-[9px] text-white font-bold px-2 py-0.5 rounded-full backdrop-blur-sm">${game.category}</span>
+                            <button onclick="toggleFavorite(event, ${game.id})" class="absolute top-1.5 left-1.5 w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-sm hover:bg-red-500/20 hover:text-red-400 transition active:scale-90">
+                                <i class="${isFav ? 'fa-solid text-red-500' : 'fa-regular'} fa-heart text-xs"></i>
+                            </button>
+                        </div>
+                        <div class="p-2 sm:p-3">
+                            <div class="flex items-center justify-between">
+                                <h4 class="font-extrabold text-xs text-white truncate">${game.title}</h4>
+                                <span class="text-[9px] text-amber-400 font-bold flex items-center gap-0.5"><i class="fa-solid fa-star"></i>${game.rating}</span>
+                            </div>
+                            <p class="text-[10px] text-gray-400 mt-1 line-clamp-2 leading-relaxed min-h-[28px]">${game.desc}</p>
+                        </div>
+                    </div>
+                    <div class="p-2 sm:p-3 pt-0 border-t border-gray-800/50 flex items-center justify-between gap-2 mt-auto">
+                        <span class="text-[9px] text-gray-500 font-semibold"><i class="fa-solid fa-cloud text-sky-400 mr-0.5"></i> ${game.visits}</span>
+                        <button onclick="playGame(${game.id})" class="px-2.5 py-1 rounded-lg bg-gray-800 group-hover:bg-gradient-to-r group-hover:from-rose-600 group-hover:to-red-500 text-[10px] font-black text-white transition duration-300 shadow-md">
+                            العب الآن ⚡
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // تفضيل وحفظ الألعاب في المتصفح
+        function toggleFavorite(event, id) {
+            event.stopPropagation();
+            if (favoriteGames.includes(id)) {
+                favoriteGames = favoriteGames.filter(x => x !== id);
+                showToast("تمت الإزالة من المفضلة", "💔");
+            } else {
+                favoriteGames.push(id);
+                showToast("تمت الإضافة للمفضلة", "💖");
+            }
+            localStorage.setItem('portal_favorites_v4', JSON.stringify(favoriteGames));
+            updateFavBadge();
+            renderGames();
+        }
+
+        function updateFavBadge() {
+            const count = favoriteGames.length;
+            document.getElementById('fav-count').innerText = count;
+            const navBadge = document.getElementById('nav-fav-badge');
+            if (count > 0) navBadge.classList.remove('hidden');
+            else navBadge.classList.add('hidden');
+        }
+
+        // تصفية الألعاب بناءً على الفئة
+        function setCategory(cat) {
+            currentCategory = cat;
+            onlyShowFavorites = false;
+            const btns = document.querySelectorAll('.category-btn');
+            btns.forEach(btn => {
+                if(btn.innerText.includes(cat)) {
+                    btn.className = "category-btn px-4 py-2 bg-rose-600 text-white border border-rose-500 text-xs font-bold rounded-full whitespace-nowrap transition duration-200";
+                } else {
+                    btn.className = "category-btn px-4 py-2 bg-gray-900 hover:bg-gray-800 text-gray-400 hover:text-white border border-gray-800 text-xs font-bold rounded-full whitespace-nowrap transition duration-200";
+                }
+            });
+            renderGames();
+        }
+
+        function toggleFavsFilter() {
+            onlyShowFavorites = !onlyShowFavorites;
+            const favBtn = document.getElementById('fav-filter-btn');
+            if(onlyShowFavorites) {
+                favBtn.classList.add('bg-red-500/20', 'border-red-500/40', 'text-red-400');
+                showToast("تمت تصفية الألعاب المفضلة", "❤️");
+            } else {
+                favBtn.classList.remove('bg-red-500/20', 'border-red-500/40', 'text-red-400');
+            }
+            renderGames();
+        }
+
+        function filterGames() {
+            searchQuery = document.getElementById('search-input').value.trim();
+            renderGames();
+        }
+
+        function resetSearchAndFilter() {
+            searchQuery = '';
+            currentCategory = 'الكل';
+            onlyShowFavorites = false;
+            document.getElementById('search-input').value = '';
+            setCategory('الكل');
+            renderGames();
+        }
+
+        function focusSearch() {
+            document.getElementById('search-input').focus();
+        }
+
+        // التمرير السلس للأعلى
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showInfoModal() {
+            document.getElementById('info-modal').classList.remove('hidden');
+        }
+        
+        function closeInfoModal() {
+            document.getElementById('info-modal').classList.add('hidden');
+        }
+
+        // =======================================================
+        //  إدارة النوافذ المنبثقة وتشغيل ألعاب GitHub السحابية
+        // =======================================================
+        let activeGameUrl = "";
+
+        function playGame(id) {
+            const game = gamesData.find(g => g.id === id);
+            
+            // تحديد الرابط الكامل للعبة المحددة
+            activeGameUrl = BASE_GITHUB_URL + game.fileName;
+            
+            document.getElementById('modal-game-icon').innerText = game.icon;
+            document.getElementById('modal-game-name').innerText = game.title;
+            document.getElementById('modal-game-category').innerText = `تصنيف: ${game.category}`;
+            document.getElementById('footer-game-path').innerText = `web88/${game.fileName}`;
+            
+            document.getElementById('game-modal').classList.remove('hidden');
+            document.getElementById('loading-screen').classList.remove('hidden');
+            document.getElementById('iframe-game-container').classList.add('hidden');
+            
+            // تصفير الـ iframe لمنع استهلاك الموارد بالخلفية
+            document.getElementById('game-iframe').src = "";
+            
+            // شريط تقدم تشغيل اللعبة السحابية
+            const bar = document.getElementById('loading-bar');
+            bar.style.width = '0%';
+            let progress = 0;
+            
+            const interval = setInterval(() => {
+                progress += Math.floor(Math.random() * 25) + 15;
+                if(progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    
+                    document.getElementById('loading-screen').classList.add('hidden');
+                    const iframeContainer = document.getElementById('iframe-game-container');
+                    const iframe = document.getElementById('game-iframe');
+                    
+                    // تمرير الرابط للـ iframe للتشغيل التلقائي من مستودعك الخاص
+                    iframe.src = activeGameUrl;
+                    iframeContainer.classList.remove('hidden');
+                }
+                bar.style.width = `${progress}%`;
+            }, 80);
+        }
+
+        // دالة إعادة تحميل اللعبة النشطة لحل أي تعليق أو تصفير النتائج بسرعة بلمسة واحدة
+        function reloadActiveGame() {
+            if (activeGameUrl !== "") {
+                const iframe = document.getElementById('game-iframe');
+                document.getElementById('loading-screen').classList.remove('hidden');
+                document.getElementById('iframe-game-container').classList.add('hidden');
+                iframe.src = "";
+                
+                const bar = document.getElementById('loading-bar');
+                bar.style.width = '0%';
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 40;
+                    if(progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        document.getElementById('loading-screen').classList.add('hidden');
+                        iframe.src = activeGameUrl;
+                        document.getElementById('iframe-game-container').classList.remove('hidden');
+                        showToast("تم إعادة تشغيل اللعبة بنجاح", "🔄");
+                    }
+                    bar.style.width = `${progress}%`;
+                }, 100);
+            }
+        }
+
+        // إغلاق اللعبة وإيقافها بالكامل لمنع أي صوت أو أكواد مستمرة بالخلفية
+        function closeGameModal() {
+            document.getElementById('game-modal').classList.add('hidden');
+            document.getElementById('game-iframe').src = "";
+            activeGameUrl = "";
+        }
+    </script>
+</body>
+</html>
+
+```
