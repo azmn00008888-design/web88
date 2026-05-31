@@ -1,0 +1,680 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محدد الموقع مع حفظ أفضل دقة</title>
+    <!-- Tailwind CSS للتصميم العصري -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- مكتبة الخرائط المجانية Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- مكتبة الأيقونات Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap');
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+        #map {
+            height: 320px;
+            width: 100%;
+            border-radius: 1rem;
+            z-index: 1;
+        }
+        @keyframes custom-pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            50% { transform: scale(1.03); box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
+        }
+        .pulse-active {
+            animation: custom-pulse 2s infinite;
+        }
+        /* تأثير وميض عند تسجيل دقة جديدة */
+        @keyframes record-flash {
+            0% { background-color: rgba(16, 185, 129, 0.4); }
+            100% { background-color: transparent; }
+        }
+        .flash-success {
+            animation: record-flash 1s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between">
+
+    <!-- الرأس (Header) -->
+    <header class="bg-slate-800 border-b border-slate-700 py-4 px-6 shadow-md">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
+                    <i data-lucide="shield-check" class="w-6 h-6 animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold text-white">رادار المواقع الذكي</h1>
+                    <p class="text-xs text-slate-400">تأمين وحفظ أقوى إشارة للأقمار الصناعية تلقائياً</p>
+                </div>
+            </div>
+            <div id="status-badge" class="px-3 py-1 bg-slate-700 text-xs font-semibold rounded-full text-slate-300 flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-slate-500 inline-block" id="status-dot"></span>
+                <span id="status-text">خامل</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="flex-grow max-w-4xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- الإرشاد وإعدادات الدقة المطلوبة -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- كارت التحكم والتوجيه -->
+            <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex flex-col justify-between shadow-lg">
+                <div>
+                    <h3 class="font-bold text-lg text-white mb-2 flex items-center gap-2">
+                        <i data-lucide="target" class="w-5 h-5 text-emerald-400"></i> معيار الرصد
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4">اختر الدقة التي ترغب بالوصول إليها. سيقوم النظام بحفظ أفضل إحداثيات وتنبيهك فور مطابقتها.</p>
+                    
+                    <!-- منزلق الدقة المطلوبة -->
+                    <div class="space-y-2 mb-4">
+                        <div class="flex justify-between text-sm font-semibold">
+                            <span>الدقة المستهدفة:</span>
+                            <span class="text-emerald-400 font-mono" id="target-val">5 أمتار</span>
+                        </div>
+                        <input type="range" id="target-accuracy" min="1" max="30" value="5" 
+                               class="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                        <div class="flex justify-between text-[10px] text-slate-500">
+                            <span>1 متر (مثالي)</span>
+                            <span>30 متر (تقريبي)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2 pt-2">
+                    <button id="start-btn" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-900/30 transition-all flex items-center justify-center gap-2 active:scale-95">
+                        <i data-lucide="play" class="w-5 h-5"></i>
+                        <span>ابدأ البحث النشط عن GPS</span>
+                    </button>
+                    <div class="flex gap-2">
+                        <button id="stop-btn" class="flex-1 bg-rose-950/40 hover:bg-rose-900/40 text-rose-400 border border-rose-500/20 font-semibold py-2 px-3 rounded-xl transition-all hidden flex items-center justify-center gap-2">
+                            <i data-lucide="square" class="w-4 h-4"></i>
+                            <span>إيقاف</span>
+                        </button>
+                        <button id="reset-best-btn" class="flex-1 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2 px-3 rounded-xl transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                            <span>تصفير الذاكرة</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- لوحة مقارنة الدقة (الحالية ضد الأفضل) -->
+            <div id="accuracy-panel" class="bg-slate-800 p-5 rounded-2xl border border-slate-700 flex flex-col justify-between shadow-lg md:col-span-2 relative">
+                
+                <div class="w-full flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg text-white flex items-center gap-2">
+                        <i data-lucide="cpu" class="w-5 h-5 text-emerald-400"></i> معالجة الإشارة الذكية
+                    </h3>
+                    <span id="update-timer" class="text-xs text-slate-400">بانتظار الإشارة...</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 items-center">
+                    
+                    <!-- القيمة الحالية (اللحظية) -->
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700/50 text-center relative">
+                        <span class="absolute top-2 right-2 flex h-2 w-2">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
+                        </span>
+                        <span class="text-xs text-slate-400 block mb-1">الدقة اللحظية الآن</span>
+                        <div class="flex items-baseline justify-center gap-1">
+                            <span id="live-accuracy" class="text-3xl font-black text-sky-400">--</span>
+                            <span class="text-xs text-slate-500">متر</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-2">تتغير باستمرار حسب الغيوم والمباني</p>
+                    </div>
+
+                    <!-- القيمة الأفضل (المحفوظة والمثبتة) -->
+                    <div id="best-card" class="bg-emerald-950/20 p-4 rounded-xl border border-emerald-500/30 text-center relative transition-colors duration-300">
+                        <span class="absolute top-2 right-2 text-emerald-400">
+                            <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                        </span>
+                        <span class="text-xs text-emerald-400 font-bold block mb-1">أفضل دقة تم تأمينها</span>
+                        <div class="flex items-baseline justify-center gap-1">
+                            <span id="best-accuracy" class="text-4xl font-black text-emerald-400">--</span>
+                            <span class="text-xs text-emerald-500 font-bold">متر</span>
+                        </div>
+                        <p class="text-[10px] text-emerald-500 font-semibold mt-2">الإحداثيات المقفلة للإرسال</p>
+                    </div>
+
+                </div>
+
+                <!-- الإحداثيات الأفضل المحفوظة -->
+                <div class="mt-4 grid grid-cols-2 gap-2 text-xs font-mono">
+                    <div class="bg-slate-900/40 p-2.5 rounded border border-slate-700/50 flex flex-col">
+                        <span class="text-slate-500 text-[10px]">خط العرض المقفل</span>
+                        <span id="best-lat" class="text-slate-200 font-bold mt-0.5">--</span>
+                    </div>
+                    <div class="bg-slate-900/40 p-2.5 rounded border border-slate-700/50 flex flex-col">
+                        <span class="text-slate-500 text-[10px]">خط الطول المقفل</span>
+                        <span id="best-lng" class="text-slate-200 font-bold mt-0.5">--</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- الخريطة واللوحة المباشرة -->
+        <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 shadow-lg space-y-3">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-base text-white flex items-center gap-2">
+                    <i data-lucide="map" class="w-5 h-5 text-emerald-400"></i> الخريطة الذكية
+                </h3>
+                <span id="map-legend" class="text-xs text-slate-400 bg-slate-900/80 px-2.5 py-1 rounded hidden border border-slate-700">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 ml-1"></span> الموقع المثبت
+                    <span class="inline-block w-2.5 h-2.5 rounded-full bg-sky-500 mr-2 ml-1"></span> موقعك الفعلي الآن
+                </span>
+            </div>
+            <!-- حاوية الخريطة -->
+            <div class="relative">
+                <div id="map"></div>
+                <div id="map-placeholder" class="absolute inset-0 bg-slate-900/95 rounded-2xl flex flex-col items-center justify-center text-center p-6 z-10 transition-opacity duration-300">
+                    <i data-lucide="map-pin" class="w-12 h-12 text-emerald-500 mb-2 animate-bounce"></i>
+                    <p class="font-bold text-slate-200">الخريطة في انتظار إشارة الـ GPS</p>
+                    <p class="text-xs text-slate-500 max-w-sm mt-1">اضغط على زر "ابدأ البحث النشط" بالأعلى لبدء التقاط وفلترة إحداثيات الأقمار الصناعية.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- معاينة وإرسال الرسالة المقفلة -->
+        <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700 shadow-lg space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-700 pb-4">
+                <div>
+                    <h3 class="font-bold text-lg text-white flex items-center gap-2">
+                        <i data-lucide="share-2" class="w-5 h-5 text-emerald-400"></i> مشاركة الموقع المقفل عبر واتساب
+                    </h3>
+                    <p class="text-xs text-slate-400">محتوى الرسالة مؤمن تماماً على الإحداثيات ذات الدقة الأعلى (الأقل نسبة خطأ تم رصدها).</p>
+                </div>
+                <div id="accuracy-badge" class="px-3 py-1 bg-amber-500/10 text-amber-400 text-xs font-bold rounded-lg border border-amber-500/20">
+                    بانتظار الإشارة الأولى...
+                </div>
+            </div>
+
+            <!-- معاينة الرسالة -->
+            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700/50">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs text-slate-500 font-bold">معاينة الرسالة الجاهزة للإرسال:</span>
+                    <button id="copy-btn" class="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors" disabled>
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i> نسخ النص
+                    </button>
+                </div>
+                <div id="message-preview" class="text-sm text-slate-400 leading-relaxed font-mono whitespace-pre-wrap select-all">
+-- لم يتم رصد أي موقع حتى الآن. اضغط على زر البدء لتحديث إحداثياتك --
+                </div>
+            </div>
+
+            <!-- أزرار المشاركة المباشرة -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <!-- زر الواتساب -->
+                <button id="whatsapp-btn" class="w-full bg-slate-700 text-slate-400 font-bold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-3 cursor-not-allowed" disabled>
+                    <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.717-1.456L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.965C16.588 1.977 14.113.953 11.5.953c-5.44 0-9.865 4.371-9.87 9.8c-.002 1.761.472 3.479 1.374 5.013l-1.03 3.763 3.864-1.001c1.53.834 3.1 1.27 4.712 1.272zm11.233-7.531c-.301-.15-1.78-.879-2.056-.979-.275-.1-.475-.15-.675.15-.2.3-.775.979-.95 1.179-.175.2-.35.225-.65.075-.3-.15-1.265-.467-2.41-1.485-.89-.795-1.49-1.777-1.665-2.077-.175-.3-.018-.463.13-.612.134-.133.3-.35.45-.525.15-.175.2-.3.3-.5.1-.2.05-.375-.025-.525-.075-.15-.675-1.625-.925-2.225-.244-.589-.493-.51-.675-.519-.175-.009-.375-.01-.575-.01-.2 0-.525.075-.8 1.05-.275.975-1.05 1.975-1.125 2.1-.075.125-.1.25-.05.475.2.625 1.346 2.13 3.09 2.875.415.177.739.283.988.362.417.132.796.113 1.096.069.33-.049 1.05-.429 1.2-1.029.15-.6.15-1.1.105-1.2-.045-.1-.175-.15-.475-.3z"/>
+                    </svg>
+                    <span>أرسل أفضل موقع للواتساب</span>
+                </button>
+
+                <!-- زر المشاركة العام بالجوال -->
+                <button id="share-native-btn" class="w-full bg-slate-700 text-slate-400 font-bold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-3 cursor-not-allowed" disabled>
+                    <i data-lucide="share" class="w-6 h-6"></i>
+                    <span>مشاركة عبر تطبيقات أخرى</span>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- تذييل الصفحة -->
+    <footer class="bg-slate-900 border-t border-slate-800 py-4 px-6 text-center text-xs text-slate-500">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
+            <span>رادار الموقع عالي الدقة والمثبت ذكياً © 2026</span>
+            <span class="flex items-center gap-1">
+                تأكد من فتح تطبيق الـ GPS والسماح للموقع بالعمل في الخلفية لضمان دقة أعلى <i data-lucide="info" class="w-3.5 h-3.5"></i>
+            </span>
+        </div>
+    </footer>
+
+    <!-- صندوق رسائل التنبيه المخصص (بديل الـ alert) -->
+    <div id="toast" class="fixed bottom-5 left-5 right-5 sm:left-auto sm:max-w-sm bg-slate-800 border-r-4 border-emerald-500 p-4 rounded-xl shadow-2xl transition-all duration-300 transform translate-y-24 opacity-0 z-50 pointer-events-none">
+        <div class="flex items-start gap-3">
+            <div id="toast-icon" class="p-1 bg-emerald-500/10 rounded text-emerald-400 mt-0.5">
+                <i data-lucide="check-circle" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h4 id="toast-title" class="font-bold text-white text-sm">تم التحديث</h4>
+                <p id="toast-desc" class="text-xs text-slate-400 mt-1">وصف الإشعار هنا.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- مكتبة الخرائط المجانية Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // تفعيل أيقونات Lucide
+        lucide.createIcons();
+
+        // متغيرات التتبع والذاكرة
+        let watchId = null;
+        let map = null;
+        
+        // مؤشر الموقع المثبت (الأفضل دقة) والموقع الحالي الفعلي
+        let bestMarker = null;
+        let bestAccuracyCircle = null;
+        let liveMarker = null;
+
+        // لتخزين القيم الرقمية
+        let bestAccuracy = Infinity; // نبدأ بأسوأ قيمة ممكنة للمقارنة
+        let bestCoords = null; 
+        let currentLiveCoords = null;
+        let targetAccuracy = 5;
+
+        // عناصر واجهة المستخدم
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const resetBestBtn = document.getElementById('reset-best-btn');
+        const targetSlider = document.getElementById('target-accuracy');
+        const targetValText = document.getElementById('target-val');
+        
+        const liveAccuracyText = document.getElementById('live-accuracy');
+        const bestAccuracyText = document.getElementById('best-accuracy');
+        const bestLatText = document.getElementById('best-lat');
+        const bestLngText = document.getElementById('best-lng');
+        const bestCard = document.getElementById('best-card');
+        const mapLegend = document.getElementById('map-legend');
+        
+        const mapPlaceholder = document.getElementById('map-placeholder');
+        const timerText = document.getElementById('update-timer');
+        
+        const messagePreview = document.getElementById('message-preview');
+        const whatsappBtn = document.getElementById('whatsapp-btn');
+        const shareNativeBtn = document.getElementById('share-native-btn');
+        const copyBtn = document.getElementById('copy-btn');
+        const accuracyBadge = document.getElementById('accuracy-badge');
+        
+        const statusBadge = document.getElementById('status-badge');
+        const statusDot = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+
+        // تحديث منزلق الدقة المطلوبة
+        targetSlider.addEventListener('input', (e) => {
+            targetAccuracy = parseFloat(e.target.value);
+            targetValText.textContent = `${targetAccuracy} ${targetAccuracy == 1 ? 'متر' : 'أمتار'}`;
+            if (bestCoords) {
+                checkAccuracyThreshold();
+            }
+        });
+
+        // تشغيل وإيقاف التتبع
+        startBtn.addEventListener('click', startTracking);
+        stopBtn.addEventListener('click', stopTracking);
+        
+        // إعادة ضبط الذاكرة والبدء من جديد
+        resetBestBtn.addEventListener('click', () => {
+            bestAccuracy = Infinity;
+            bestCoords = null;
+            bestAccuracyText.textContent = '--';
+            bestLatText.textContent = '--';
+            bestLngText.textContent = '--';
+            
+            // إعادة ضبط الإجراءات والأزرار
+            whatsappBtn.disabled = true;
+            whatsappBtn.className = "w-full bg-slate-700 text-slate-400 font-bold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-3 cursor-not-allowed";
+            shareNativeBtn.disabled = true;
+            shareNativeBtn.className = "w-full bg-slate-700 text-slate-400 font-bold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-3 cursor-not-allowed";
+            copyBtn.disabled = true;
+            
+            messagePreview.textContent = "-- تم تصفير الذاكرة، بانتظار إشارة GPS جديدة --";
+            accuracyBadge.className = "px-3 py-1 bg-amber-500/10 text-amber-400 text-xs font-bold rounded-lg border border-amber-500/20";
+            accuracyBadge.textContent = "بانتظار الإشارة الأولى بعد التصفير...";
+            
+            // إزالة مؤشرات الخريطة القديمة وإعادة رسمها عند أول استقبال
+            if (bestMarker && map) {
+                map.removeLayer(bestMarker);
+                map.removeLayer(bestAccuracyCircle);
+                bestMarker = null;
+                bestAccuracyCircle = null;
+            }
+
+            showToast('تم تصفير الذاكرة', 'يمكنك الآن رصد دقة جديدة للموقع من الصفر.', 'rotate-ccw', 'border-sky-500', 'text-sky-400');
+        });
+
+        function startTracking() {
+            if (!navigator.geolocation) {
+                showToast('خطأ بالنظام', 'متصفحك لا يدعم نظام تحديد المواقع الجغرافي.', 'alert-triangle', 'border-red-500', 'text-red-400');
+                return;
+            }
+
+            startBtn.classList.add('hidden');
+            stopBtn.classList.remove('hidden');
+            
+            statusBadge.className = "px-3 py-1 bg-emerald-950/40 text-xs font-semibold rounded-full text-emerald-400 border border-emerald-500/20 flex items-center gap-1 animate-pulse";
+            statusDot.className = "w-2 h-2 rounded-full bg-emerald-500 inline-block";
+            statusText.textContent = "جاري الاتصال بالأقمار...";
+            
+            timerText.textContent = "جاري رصد إشارة الأقمار الصناعية...";
+
+            const geoOptions = {
+                enableHighAccuracy: true, // استدعاء الرقاقة المباشرة لضمان أعلى جودة
+                timeout: 15000,
+                maximumAge: 0             // عدم إرجاع قيم كاش قديمة
+            };
+
+            watchId = navigator.geolocation.watchPosition(
+                handlePositionUpdate,
+                handlePositionError,
+                geoOptions
+            );
+        }
+
+        function stopTracking() {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+
+            startBtn.classList.remove('hidden');
+            stopBtn.classList.add('hidden');
+            
+            statusBadge.className = "px-3 py-1 bg-slate-700 text-xs font-semibold rounded-full text-slate-300 flex items-center gap-1";
+            statusDot.className = "w-2 h-2 rounded-full bg-slate-500 inline-block";
+            statusText.textContent = "خامل";
+            
+            timerText.textContent = "توقف التتبع النشط.";
+        }
+
+        // معالجة البيانات وإجراء الحساب والفلترة
+        function handlePositionUpdate(position) {
+            currentLiveCoords = position.coords;
+            const liveAccuracy = Math.round(currentLiveCoords.accuracy * 10) / 10;
+            
+            const timestamp = new Date(position.timestamp);
+            timerText.textContent = `آخر تحديث لحظي: ${timestamp.toLocaleTimeString('ar-EG')}`;
+
+            // إخفاء كارت الانتظار على الخريطة
+            if (mapPlaceholder) {
+                mapPlaceholder.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => mapPlaceholder.remove(), 300);
+            }
+            if (mapLegend) {
+                mapLegend.classList.remove('hidden');
+            }
+
+            // تحديث الدقة اللحظية على الشاشة
+            liveAccuracyText.textContent = liveAccuracy;
+
+            // الفلترة الذكية: هل الدقة الحالية أفضل (أصغر) من أفضل دقة مسجلة سابقاً؟
+            if (liveAccuracy < bestAccuracy) {
+                // حفظ البيانات الأفضل بالذاكرة
+                bestAccuracy = liveAccuracy;
+                bestCoords = currentLiveCoords;
+
+                // تحديث الواجهة الرقمية للموقع الأفضل
+                bestAccuracyText.textContent = bestAccuracy;
+                bestLatText.textContent = bestCoords.latitude.toFixed(6);
+                bestLngText.textContent = bestCoords.longitude.toFixed(6);
+
+                // تأثير بصري حركي يوضح حدوث "تحديث جديد بأفضل دقة"
+                bestCard.classList.add('flash-success');
+                setTimeout(() => bestCard.classList.remove('flash-success'), 1000);
+
+                // نغمة تنبيه لطيفة لإشعار المستخدم بتحسن الإشارة
+                playSuccessBeep();
+
+                // تحديث نص الرسالة وصندوق المعاينة بناءً على الإحداثيات الأفضل الجديدة
+                generateWhatsAppMessage(bestCoords.latitude, bestCoords.longitude, bestAccuracy);
+
+                showToast('دقة أفضل ملقطة! 🎯', `تم كسر الرقم السابق! الدقة الأفضل الآن هي ${bestAccuracy} متر.`, 'shield', 'border-emerald-500', 'text-emerald-400');
+            }
+
+            // تحديث الخريطة الحية (إرسال الموقع الحالي لرسمه، وموقع الذاكرة لتثبيته)
+            updateLiveMap(currentLiveCoords.latitude, currentLiveCoords.longitude, liveAccuracy);
+
+            // التحقق من مطابقة الدقة الحالية أو الأفضل مع المعيار المطلوب
+            checkAccuracyThreshold();
+        }
+
+        // فحص مطابقة الدقة المسجلة للهدف المقترح
+        function checkAccuracyThreshold() {
+            if (!bestCoords) return;
+
+            if (bestAccuracy <= targetAccuracy) {
+                // تفعيل كامل الأزرار بوضع الجودة العالية
+                whatsappBtn.disabled = false;
+                whatsappBtn.className = "w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20 active:scale-95 pulse-active cursor-pointer text-base";
+                
+                shareNativeBtn.disabled = false;
+                shareNativeBtn.className = "w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-3 cursor-pointer text-base";
+                
+                copyBtn.disabled = false;
+
+                accuracyBadge.className = "px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-lg border border-emerald-500/30 animate-pulse";
+                accuracyBadge.textContent = "الموقع المقفل يطابق الدقة المستهدفة تماماً!";
+                
+                statusText.textContent = "دقة كافية محققة!";
+            } else {
+                // في حال كانت الدقة الحالية أعلى من المطلوب لكن لدينا موقع مخزن مقبول
+                whatsappBtn.disabled = false;
+                whatsappBtn.className = "w-full bg-slate-800 text-emerald-500 hover:bg-slate-750 font-bold py-4 px-6 rounded-xl border border-emerald-500/30 transition-all flex items-center justify-center gap-3 cursor-pointer text-base";
+                
+                shareNativeBtn.disabled = false;
+                shareNativeBtn.className = "w-full bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold py-4 px-6 rounded-xl transition-all flex items-center justify-center gap-3 cursor-pointer text-base";
+                
+                copyBtn.disabled = false;
+
+                accuracyBadge.className = "px-3 py-1 bg-amber-500/10 text-amber-400 text-xs font-bold rounded-lg border border-amber-500/20";
+                accuracyBadge.textContent = "الموقع المقفل لم يصل بعد للدقة المستهدفة، جاري التحسين...";
+            }
+        }
+
+        // تحديث الخريطة التفاعلية مع رسم الدوائر والمؤشرات
+        function updateLiveMap(liveLat, liveLng, liveAccuracy) {
+            if (!bestCoords) return;
+
+            const bestLat = bestCoords.latitude;
+            const bestLng = bestCoords.longitude;
+
+            // 1. إنشاء الخريطة لأول مرة
+            if (!map) {
+                map = L.map('map', { zoomControl: false }).setView([bestLat, bestLng], 17);
+
+                // خريطة كارتو المظلمة الفاخرة
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '&copy; OpenStreetMap'
+                }).addTo(map);
+
+                // أيقونة مخصصة لأفضل موقع تم قفله وتأمينه
+                const bestIcon = L.divIcon({
+                    className: 'custom-best-icon',
+                    html: `<div class="w-5 h-5 bg-emerald-500 rounded-full border-2 border-white shadow-2xl flex items-center justify-center text-[9px] font-black text-slate-950">🏆</div>`,
+                    iconSize: [22, 22],
+                    iconAnchor: [11, 11]
+                });
+
+                bestMarker = L.marker([bestLat, bestLng], { icon: bestIcon }).addTo(map);
+                
+                // دائرة تمثل مدى خطأ الموقع الأفضل
+                bestAccuracyCircle = L.circle([bestLat, bestLng], {
+                    radius: bestAccuracy,
+                    color: '#10b981',
+                    fillColor: '#10b981',
+                    fillOpacity: 0.15,
+                    weight: 1.5
+                }).addTo(map);
+
+                // أيقونة الموقع الفعلي الحالي المباشر
+                const liveIcon = L.divIcon({
+                    className: 'custom-live-icon',
+                    html: `<div class="w-3.5 h-3.5 bg-sky-400 rounded-full border-2 border-slate-900 shadow-md animate-ping"></div>`,
+                    iconSize: [14, 14],
+                    iconAnchor: [7, 7]
+                });
+
+                liveMarker = L.marker([liveLat, liveLng], { icon: liveIcon }).addTo(map);
+
+            } else {
+                // 2. تحديث الإحداثيات باستمرار على الخريطة
+                const bestLatLng = new L.LatLng(bestLat, bestLng);
+                const liveLatLng = new L.LatLng(liveLat, liveLng);
+
+                bestMarker.setLatLng(bestLatLng);
+                bestAccuracyCircle.setLatLng(bestLatLng);
+                bestAccuracyCircle.setRadius(bestAccuracy);
+
+                liveMarker.setLatLng(liveLatLng);
+
+                // التركيز دائماً على أفضل موقع تم قفله
+                map.panTo(bestLatLng);
+            }
+        }
+
+        // توليد نص الرسالة بناءً على إحداثيات الذاكرة الأفضل المقفلة
+        function generateWhatsAppMessage(lat, lng, accuracy) {
+            const googleMapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+            
+            const message = `📍 *أفضل موقع جغرافي تم رصده بدقة عالية* ⏱️
+🛡️ *نسبة خطأ الإشارة الحالية:* ±${accuracy} متر فقط!
+
+🔗 *الرابط المباشر على خرائط جوجل:*
+${googleMapsLink}
+
+🌐 *الإحداثيات الجغرافية المفصلة:*
+• Latitude: \`${lat.toFixed(7)}\`
+• Longitude: \`${lng.toFixed(7)}\`
+
+_مُستخرج ومثبت بواسطة رادار المواقع الذكي_`;
+
+            messagePreview.textContent = message;
+
+            // ترميز النص لإرساله للواتساب بشكل آمن ومقاوم للأخطاء
+            const encodedText = encodeURIComponent(message);
+            
+            whatsappBtn.onclick = () => {
+                const waUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+                window.open(waUrl, '_blank');
+            };
+
+            // مشاركة أصلية عبر الجوال
+            shareNativeBtn.onclick = async () => {
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: 'موقعي المقفل عالي الدقة',
+                            text: message
+                        });
+                    } catch (err) {
+                        console.log('تم إلغاء المشاركة أو حدث خلل: ', err);
+                    }
+                } else {
+                    copyToClipboard();
+                }
+            };
+        }
+
+        // معالجة وإشعارات أخطاء الـ GPS
+        function handlePositionError(error) {
+            let errorMsg = "";
+            let errorTitle = "خلل برصد إشارة GPS";
+            
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    errorTitle = "الإذن مرفوض";
+                    errorMsg = "الرجاء الذهاب لإعدادات المتصفح وإتاحة إذن تحديد الموقع للاستفادة من الدقة العالية للـ GPS.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    errorMsg = "إشارة الأقمار الصناعية ضعيفة أو مقطوعة حالياً. تفضل بالانتقال لمكان خارجي مكشوف.";
+                    break;
+                case error.TIMEOUT:
+                    errorTitle = "فشل في الاستجابة";
+                    errorMsg = "استغرق الهاتف وقتاً طويلاً للبحث عن الموقع. تأكد من تفعيل ميزة الموقع الجغرافي بالهاتف.";
+                    break;
+                default:
+                    errorMsg = "حدث خطأ غير متوقع أثناء تتبع الموقع الجغرافي.";
+            }
+
+            stopTracking();
+            showToast(errorTitle, errorMsg, 'alert-triangle', 'border-rose-500', 'text-rose-400');
+        }
+
+        // نسخ النص المنسق يدوياً للحافظة
+        copyBtn.addEventListener('click', copyToClipboard);
+
+        function copyToClipboard() {
+            const textToCopy = messagePreview.textContent;
+            
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            textArea.style.position = "fixed"; 
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast('تم النسخ للحافظة!', 'تم نسخ تفاصيل الإحداثيات المقفلة بنجاح.', 'copy', 'border-emerald-500', 'text-emerald-400');
+                } else {
+                    showToast('فشل النسخ', 'تعذر النسخ التلقائي في هذا المتصفح.', 'alert-circle', 'border-rose-500', 'text-rose-400');
+                }
+            } catch (err) {
+                showToast('عذراً', 'يرجى تحديد النص بداخل المعاينة ونسخه يدوياً.', 'alert-triangle', 'border-amber-500', 'text-amber-400');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        // نظام التنبيهات الجانبية المخصص
+        function showToast(title, desc, iconName, borderClass, textClass) {
+            const toast = document.getElementById('toast');
+            const toastTitle = document.getElementById('toast-title');
+            const toastDesc = document.getElementById('toast-desc');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastTitle.textContent = title;
+            toastDesc.textContent = desc;
+            
+            toastIcon.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5"></i>`;
+            toastIcon.className = `p-1 rounded mt-0.5 bg-slate-900 ${textClass}`;
+            
+            toast.className = `fixed bottom-5 left-5 right-5 sm:left-auto sm:max-w-sm bg-slate-800 border-r-4 ${borderClass} p-4 rounded-xl shadow-2xl transition-all duration-300 transform translate-y-0 opacity-100 z-50`;
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.className = `fixed bottom-5 left-5 right-5 sm:left-auto sm:max-w-sm bg-slate-800 border-r-4 ${borderClass} p-4 rounded-xl shadow-2xl transition-all duration-300 transform translate-y-24 opacity-0 z-50 pointer-events-none`;
+            }, 5000);
+        }
+
+        // توليد رنة الكترونية خفيفة وتنبيهية عند تحسن الدقة وحفظها
+        function playSuccessBeep() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime); // نغمة مرتفعة وواضحة (A5)
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+                
+                osc.start(audioCtx.currentTime);
+                osc.stop(audioCtx.currentTime + 0.15);
+            } catch (e) {
+                console.log("توليد الصوت التنبيهي غير مدعوم في هذا المتصفح.");
+            }
+        }
+    </script>
+</body>
+</html>
+
+```
