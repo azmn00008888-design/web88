@@ -1,0 +1,589 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لعبة الطفل الأكول</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Arabic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+        /* حركة الاهتزاز عند زيادة الوزن */
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            10%, 30%, 50%, 70%, 90% { transform: translate(-5px, 0) rotate(-1deg); }
+            20%, 40%, 60%, 80% { transform: translate(5px, 0) rotate(1deg); }
+        }
+        .shake-effect {
+            animation: shake 0.5s ease-in-out;
+        }
+        /* تأثيرات الفقاعات والخلفية المتحركة */
+        .bg-gradient-animate {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-animate h-screen w-screen flex flex-col justify-between items-center relative p-4 overflow-hidden">
+
+    <!-- واجهة البداية -->
+    <div id="start-screen" class="absolute inset-0 bg-black/80 z-50 flex flex-col justify-center items-center p-6 text-white text-center">
+        <div class="bg-white/10 backdrop-blur-md border border-white/20 p-8 rounded-3xl max-w-md w-full shadow-2xl">
+            <!-- أيقونة الطفل التوضيحية -->
+            <div class="w-32 h-32 mx-auto mb-4 bg-yellow-300 rounded-full flex items-center justify-center text-6xl shadow-inner animate-bounce">
+                👶
+            </div>
+            <h1 class="text-4xl font-black mb-4 text-yellow-300 tracking-wide">الطفل الأكول!</h1>
+            <p class="text-gray-200 text-lg mb-6 leading-relaxed">
+                هناك أطعمة تتساقط نحو الطفل الجائع! 
+                <br>
+                <span class="text-red-300 font-bold">اضغط على الأطعمة لتدميرها</span> قبل أن يأكلها الطفل ويسمن ويمرض!
+                <br>
+                <span class="text-green-300 font-bold">ملاحظة:</span> التفاح الأخضر طعام صحي يساعد في إنقاص وزنه!
+            </p>
+            <button id="start-btn" class="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-slate-900 font-black text-2xl py-4 px-8 rounded-2xl shadow-lg transform transition active:scale-95 duration-100">
+                ابدأ اللعب الآن 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- واجهة نهاية اللعبة -->
+    <div id="game-over-screen" class="absolute inset-0 bg-red-950/90 z-50 flex flex-col justify-center items-center p-6 text-white text-center hidden">
+        <div class="bg-white/10 backdrop-blur-lg border border-red-500/30 p-8 rounded-3xl max-w-md w-full shadow-2xl">
+            <div class="text-8xl mb-4">🤢🤕</div>
+            <h2 class="text-4xl font-black mb-2 text-red-400">لقد مرض الطفل!</h2>
+            <p class="text-gray-300 text-lg mb-6">لقد سمن الطفل جداً وأصيب بالتخمة والمرض بسبب كثرة الأكل غير الصحي!</p>
+            
+            <div class="bg-black/30 rounded-2xl p-4 mb-6">
+                <div class="text-sm text-gray-400">النتيجة النهائية (عدد الأطعمة التي دمرتها)</div>
+                <div id="final-score" class="text-5xl font-black text-yellow-400 mt-1">0</div>
+            </div>
+
+            <button id="restart-btn" class="w-full bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-slate-900 font-black text-2xl py-4 px-8 rounded-2xl shadow-lg transform transition active:scale-95 duration-100">
+                حاول مجدداً 🔄
+            </button>
+        </div>
+    </div>
+
+    <!-- شريط الواجهة العلوي (السكور وحالة الوزن) -->
+    <div class="w-full max-w-md flex justify-between items-center z-10 bg-white/20 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/30 shadow-md">
+        <div>
+            <span class="text-sm text-slate-700 font-bold block">النقاط ⭐</span>
+            <span id="score-val" class="text-3xl font-black text-indigo-900">0</span>
+        </div>
+        <div class="text-center">
+            <span class="text-sm text-slate-700 font-bold block">مستوى السمنة ⚖️</span>
+            <span id="weight-status" class="text-lg font-black text-emerald-700">نحيف ومثالي</span>
+        </div>
+    </div>
+
+    <!-- مؤشر خطر السمنة (Progress Bar) -->
+    <div class="w-full max-w-md px-2 mt-2 z-10">
+        <div class="w-full bg-slate-200/50 rounded-full h-5 p-0.5 border border-white/20">
+            <div id="weight-bar" class="bg-gradient-to-r from-emerald-500 via-yellow-400 to-red-500 h-full rounded-full transition-all duration-300" style="width: 10%;"></div>
+        </div>
+    </div>
+
+    <!-- منطقة اللعب الرئيسية التي تظهر بها الأطعمة والطفل -->
+    <div id="game-area" class="flex-1 w-full max-w-lg relative overflow-hidden flex items-end justify-center pb-6">
+        
+        <!-- حاوية الطفل الأكول التفاعلية (مرسومة بالـ SVG) -->
+        <div id="baby-container" class="relative transition-all duration-300 ease-out origin-bottom transform translate-y-2 z-10" style="width: 200px;">
+            <!-- بالونات تعبيرية تظهر عند تناول الطعام -->
+            <div id="bubble-emoji" class="absolute -top-12 left-1/2 -translate-x-1/2 bg-white text-2xl py-1 px-3 rounded-full shadow-lg border border-pink-100 scale-0 transition-transform duration-200 pointer-events-none">😋</div>
+
+            <!-- رسم الطفل بالـ SVG لتكبيره وتغيير تعابيره ديناميكياً -->
+            <svg id="baby-svg" viewBox="0 0 200 200" class="w-full h-full drop-shadow-xl">
+                <!-- اليدين -->
+                <circle id="hand-l" cx="40" cy="140" r="15" fill="#ffd1b3" />
+                <circle id="hand-r" cx="160" cy="140" r="15" fill="#ffd1b3" />
+
+                <!-- الجسم (يتمدد ويكبر برمجياً) -->
+                <ellipse id="baby-body" cx="100" cy="150" rx="45" ry="40" fill="#ffd1b3" stroke="#e69d73" stroke-width="2"/>
+                <!-- ملابس الرضيع/حفاضة -->
+                <path id="baby-diaper" d="M 57 150 Q 100 200 143 150 Q 145 185 100 192 Q 55 185 57 150" fill="#ffffff" />
+
+                <!-- الرأس -->
+                <circle cx="100" cy="85" r="45" fill="#ffd1b3" stroke="#e69d73" stroke-width="2"/>
+
+                <!-- الشعر الكيرلي الصغير -->
+                <circle cx="100" cy="38" r="8" fill="#8b5a2b" />
+                <circle cx="92" cy="40" r="7" fill="#8b5a2b" />
+                <circle cx="108" cy="40" r="7" fill="#8b5a2b" />
+
+                <!-- العينين -->
+                <!-- اليسرى -->
+                <circle cx="82" cy="80" r="6" fill="#2d3748" />
+                <circle cx="80" cy="78" r="2" fill="#ffffff" />
+                <!-- اليمنى -->
+                <circle cx="118" cy="80" r="6" fill="#2d3748" />
+                <circle cx="116" cy="78" r="2" fill="#ffffff" />
+
+                <!-- الخدود الوردية -->
+                <ellipse cx="70" cy="92" rx="8" ry="5" fill="#ff9999" opacity="0.6" />
+                <ellipse cx="130" cy="92" rx="8" ry="5" fill="#ff9999" opacity="0.6" />
+
+                <!-- الفم (يتغير شكله عند اقتراب الطعام أو الأكل) -->
+                <path id="baby-mouth" d="M 90 100 Q 100 115 110 100 Z" fill="#b30000" stroke="#ffd1b3" stroke-width="1" />
+                
+                <!-- مصاصة الأطفال (تختفي عندما يفتح فمه ليأكل) -->
+                <g id="baby-pacifier" transform="translate(100, 102)" class="transition-all duration-150">
+                    <circle cx="0" cy="0" r="10" fill="#ff4d4d" />
+                    <circle cx="0" cy="0" r="5" fill="#ffffff" />
+                    <path d="M -5 0 Q 0 12 5 0" fill="none" stroke="#ffffff" stroke-width="2" />
+                </g>
+            </svg>
+        </div>
+
+    </div>
+
+    <!-- توجيه سفلي للتحفيز -->
+    <div class="text-xs text-slate-500 font-bold z-10 text-center pb-2">
+        المطور: لعبة الطفل الأكول التفاعلية للأجهزة المحمولة والكمبيوتر 👶🍕
+    </div>
+
+    <script>
+        // دالة إنشاء الصوت محلياً لتفادي مشاكل الروابط الخارجية والـ CORS
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playTone(freq, type, duration) {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch(e) {
+                // تجاهل خطأ الصوت في حال لم يتم التفاعل مع الصفحة بعد
+            }
+        }
+
+        // أصوات مدمجة ومخصصة
+        const sounds = {
+            pop: () => { // صوت فرقعة الطعام عند لمسه
+                playTone(600, 'sine', 0.1);
+                setTimeout(() => playTone(900, 'sine', 0.08), 30);
+            },
+            chew: () => { // صوت مضغ الطعام
+                playTone(150, 'triangle', 0.15);
+                setTimeout(() => playTone(120, 'triangle', 0.15), 100);
+            },
+            healthy: () => { // صوت أكل طعام صحي ومساعد
+                playTone(523.25, 'sine', 0.15); // دو نوت
+                setTimeout(() => playTone(659.25, 'sine', 0.15), 100); // مي نوت
+            },
+            levelUp: () => { // عند زيادة السمنة بشكل حرج
+                playTone(200, 'sawtooth', 0.3);
+            },
+            gameOver: () => { // خسارة اللعبة
+                playTone(300, 'sawtooth', 0.2);
+                setTimeout(() => playTone(220, 'sawtooth', 0.3), 150);
+                setTimeout(() => playTone(150, 'sawtooth', 0.5), 450);
+            }
+        };
+
+        // مصفوفة الأطعمة المتاحة (مع تحديد السعرات/التأثير والرموز)
+        const FOODS = [
+            { emoji: '🍔', size: 55, isHealthy: false, points: 10, weightEffect: 12 },
+            { emoji: '🍕', size: 55, isHealthy: false, points: 10, weightEffect: 15 },
+            { emoji: '🍩', size: 45, isHealthy: false, points: 10, weightEffect: 8 },
+            { emoji: '🧁', size: 45, isHealthy: false, points: 10, weightEffect: 10 },
+            { emoji: '🍟', size: 50, isHealthy: false, points: 10, weightEffect: 11 },
+            { emoji: '🌭', size: 50, isHealthy: false, points: 10, weightEffect: 12 },
+            { emoji: '🍫', size: 45, isHealthy: false, points: 15, weightEffect: 14 },
+            { emoji: '🍗', size: 50, isHealthy: false, points: 10, weightEffect: 10 },
+            // طعام صحي يظهر بنسبة أقل وينقص وزن الرضيع
+            { emoji: '🍏', size: 45, isHealthy: true, points: 5, weightEffect: -15 },
+            { emoji: '🥕', size: 45, isHealthy: true, points: 5, weightEffect: -12 }
+        ];
+
+        // المتغيرات الأساسية للحالة وللعبة
+        let score = 0;
+        let babyWeight = 10; // يبدأ بـ 10 (من 100)
+        let gameActive = false;
+        let foodInterval;
+        let animationFrameId;
+        let activeFoods = [];
+        let spawnRate = 1200; // سرعة ظهور الأطعمة بالميلي ثانية
+        let speedMultiplier = 1.0; // تسريع الحركة تدريجياً لزيادة التحدي
+
+        // عناصر واجهة المستخدم DOM
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const scoreVal = document.getElementById('score-val');
+        const finalScore = document.getElementById('final-score');
+        const weightStatus = document.getElementById('weight-status');
+        const weightBar = document.getElementById('weight-bar');
+        const gameArea = document.getElementById('game-area');
+        const babyContainer = document.getElementById('baby-container');
+        const bubbleEmoji = document.getElementById('bubble-emoji');
+
+        // عناصر الطفل الرضيع لتغيير الحجم والتعابير
+        const babyBody = document.getElementById('baby-body');
+        const babyDiaper = document.getElementById('baby-diaper');
+        const babyMouth = document.getElementById('baby-mouth');
+        const babyPacifier = document.getElementById('baby-pacifier');
+        const babyHandL = document.getElementById('hand-l');
+        const babyHandR = document.getElementById('hand-r');
+
+        // أحجام الطفل الافتراضية والحدود القصوى للتمدد
+        const baseBodyRx = 45;
+        const baseBodyRy = 40;
+        const baseWidth = 160; // الحجم الأساسي للحاوية بالبكسل
+
+        // تشغيل اللعبة لأول مرة
+        startBtn.addEventListener('click', () => {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            startScreen.classList.add('hidden');
+            startGame();
+        });
+
+        // إعادة تشغيل اللعبة
+        restartBtn.addEventListener('click', () => {
+            gameOverScreen.classList.add('hidden');
+            startGame();
+        });
+
+        // تهيئة وبدء اللعبة
+        function startGame() {
+            score = 0;
+            babyWeight = 10;
+            spawnRate = 1200;
+            speedMultiplier = 1.0;
+            activeFoods.forEach(f => f.element.remove());
+            activeFoods = [];
+            scoreVal.textContent = score;
+            gameActive = true;
+
+            updateBabyVisuals();
+            
+            // بدء إنتاج الأطعمة
+            startSpawning();
+            
+            // حلقة تحديث الحركة وإحداثيات السقوط
+            requestAnimationFrame(gameLoop);
+        }
+
+        // دالة إنشاء الأطعمة دورياً
+        function startSpawning() {
+            if (foodInterval) clearInterval(foodInterval);
+            
+            foodInterval = setInterval(() => {
+                if (!gameActive) return;
+                spawnFood();
+                
+                // تدرج في زيادة الصعوبة (تسريع ظهور الأطعمة تدريجياً مع زيادة النقاط)
+                let targetRate = Math.max(500, 1200 - (score * 8));
+                if (Math.abs(spawnRate - targetRate) > 50) {
+                    spawnRate = targetRate;
+                    startSpawning();
+                }
+            }, spawnRate);
+        }
+
+        // توليد طعام عشوائي
+        function spawnFood() {
+            // احتمال 85% طعام غير صحي و 15% طعام صحي (تفاح/جزر)
+            const roll = Math.random();
+            let chosenFood;
+            if (roll < 0.85) {
+                const unhealthyPool = FOODS.filter(f => !f.isHealthy);
+                chosenFood = unhealthyPool[Math.floor(Math.random() * unhealthyPool.length)];
+            } else {
+                const healthyPool = FOODS.filter(f => f.isHealthy);
+                chosenFood = healthyPool[Math.floor(Math.random() * healthyPool.length)];
+            }
+
+            // إنشاء عنصر الـ HTML للطعام
+            const foodEl = document.createElement('div');
+            foodEl.className = 'absolute select-none cursor-pointer flex items-center justify-center transition-transform active:scale-75 duration-100 z-20';
+            foodEl.style.fontSize = `${chosenFood.size}px`;
+            foodEl.style.width = `${chosenFood.size}px`;
+            foodEl.style.height = `${chosenFood.size}px`;
+            foodEl.innerText = chosenFood.emoji;
+
+            // تحديد مكان البدء عشوائياً بالأعلى
+            const areaWidth = gameArea.clientWidth;
+            const startX = Math.random() * (areaWidth - chosenFood.size);
+            const startY = -60;
+
+            foodEl.style.left = `${startX}px`;
+            foodEl.style.top = `${startY}px`;
+
+            // إضافة العنصر لمنطقة اللعب
+            gameArea.appendChild(foodEl);
+
+            // اتجاه السقوط وتأثير بسيط للحركة الأفقية
+            const speed = (2 + Math.random() * 2.5) * speedMultiplier;
+            const driftX = (Math.random() - 0.5) * 1.2; // ميلان خفيف بالنزول
+
+            const foodObject = {
+                element: foodEl,
+                x: startX,
+                y: startY,
+                speed: speed,
+                drift: driftX,
+                info: chosenFood
+            };
+
+            // عند الضغط على الطعام يتم تفجيره وإزالته بنجاح
+            const triggerPop = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!gameActive) return;
+
+                // صوت تفجير الطعام
+                sounds.pop();
+                
+                // تحديث السكور والنقاط
+                score += chosenFood.isHealthy ? 1 : 2; // أطعمة غير صحية تدمرها تعطيك نقاطاً أعلى لخطورتها
+                scoreVal.textContent = score;
+                speedMultiplier = 1.0 + (score * 0.015); // زيادة السرعة طردياً مع السكور
+
+                // تأثير انفجار بصري بسيط
+                createSplashEffect(foodObject.x, foodObject.y, chosenFood.emoji);
+
+                // حذف العنصر
+                destroyFood(foodObject);
+            };
+
+            // دعم اللمس والنقر معاً بأفضل استجابة ممكنة على الهواتف
+            foodEl.addEventListener('touchstart', triggerPop, { passive: false });
+            foodEl.addEventListener('mousedown', triggerPop);
+
+            activeFoods.push(foodObject);
+        }
+
+        // تدمير الطعام وإزالته من المصفوفة والشاشة
+        function destroyFood(foodObj) {
+            if (foodObj.element && foodObj.element.parentNode) {
+                foodObj.element.remove();
+            }
+            const idx = activeFoods.indexOf(foodObj);
+            if (idx > -1) {
+                activeFoods.splice(idx, 1);
+            }
+        }
+
+        // تأثير تناثر الوجبة عند تفجيرها (إنشاء قطع وجزيئات)
+        function createSplashEffect(x, y, emoji) {
+            for (let i = 0; i < 4; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'absolute pointer-events-none text-sm z-30 select-none';
+                particle.innerText = emoji;
+                particle.style.left = `${x + 15}px`;
+                particle.style.top = `${y + 15}px`;
+                gameArea.appendChild(particle);
+
+                // حركة التناثر باتجاهات عشوائية
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 40 + Math.random() * 40;
+                const destX = Math.cos(angle) * distance;
+                const destY = Math.sin(angle) * distance;
+
+                particle.animate([
+                    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                    { transform: `translate(${destX}px, ${destY}px) scale(0)`, opacity: 0 }
+                ], {
+                    duration: 500,
+                    easing: 'ease-out'
+                }).onfinish = () => particle.remove();
+            }
+        }
+
+        // حلقة التحديث المستمر لإحداثيات الأجسام الساقطة والتحقق من الاصطدام بالطفل الأكول
+        function gameLoop() {
+            if (!gameActive) return;
+
+            const areaHeight = gameArea.clientHeight;
+            const babyRect = babyContainer.getBoundingClientRect();
+            const gameAreaRect = gameArea.getBoundingClientRect();
+
+            // حساب حدود فم وجسد الطفل بالنسبة لمنطقة اللعب
+            const babyTopRel = babyRect.top - gameAreaRect.top;
+            const babyLeftRel = babyRect.left - gameAreaRect.left;
+            const babyRightRel = babyRect.right - gameAreaRect.left;
+
+            // تفتيح فم الطفل ديناميكياً عند اقتراب الطعام جداً
+            let isFoodClose = false;
+
+            for (let i = activeFoods.length - 1; i >= 0; i--) {
+                const food = activeFoods[i];
+                food.y += food.speed;
+                food.x += food.drift;
+
+                // المحافظة على الطعام داخل حدود الشاشة الأفقية
+                const maxW = gameArea.clientWidth - food.info.size;
+                if (food.x < 0) { food.x = 0; food.drift *= -1; }
+                if (food.x > maxW) { food.x = maxW; food.drift *= -1; }
+
+                food.element.style.top = `${food.y}px`;
+                food.element.style.left = `${food.x}px`;
+
+                // 1. التحقق من اقتراب الطعام لفتح الفم
+                const distToMouthY = babyTopRel - food.y;
+                const foodCenterX = food.x + (food.info.size / 2);
+                const babyCenterX = babyLeftRel + (babyRect.width / 2);
+                
+                if (distToMouthY > 0 && distToMouthY < 120 && Math.abs(foodCenterX - babyCenterX) < 100) {
+                    isFoodClose = true;
+                }
+
+                // 2. التحقق من اصطدام الطعام بجسد أو فم الطفل (الأكل)
+                if (food.y + food.info.size >= babyTopRel + 30) {
+                    // هل الإحداثي الأفقي متداخل مع عرض جسم الطفل؟
+                    if (foodCenterX >= babyLeftRel - 10 && foodCenterX <= babyRightRel + 10) {
+                        triggerBabyEat(food);
+                        continue;
+                    }
+                }
+
+                // إذا سقط الطعام تحت الشاشة تماماً دون لمسه ودون أن يأكله الطفل
+                if (food.y > areaHeight + 50) {
+                    destroyFood(food);
+                }
+            }
+
+            // تطبيق فتح أو إغلاق الفم بناءً على اقتراب الطعام
+            if (isFoodClose) {
+                // فتح الفم بالكامل وإخفاء المصاصة
+                babyMouth.setAttribute('d', 'M 85 96 Q 100 125 115 96 Z');
+                babyPacifier.style.transform = 'translate(100, 102) scale(0)';
+            } else {
+                // الفم العادي والمصاصة ظاهرة
+                babyMouth.setAttribute('d', 'M 90 100 Q 100 115 110 100 Z');
+                babyPacifier.style.transform = 'translate(100, 102) scale(1)';
+            }
+
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        // تفاعل الطفل عند تناوله للطعام
+        function triggerBabyEat(food) {
+            const effect = food.info.weightEffect;
+            
+            // تعديل وزن الطفل مع حد أدنى 5 وحدات لمنع النحافة الشديدة
+            babyWeight = Math.max(5, babyWeight + effect);
+
+            // فلاش بوجة الطفل للتغذية وتأثير اهتزاز إذا زاد الوزن كثيراً
+            if (food.info.isHealthy) {
+                sounds.healthy();
+                showStatusBubble('🥗 صحي! -');
+            } else {
+                sounds.chew();
+                showStatusBubble(food.info.emoji + ' همممم! +');
+                
+                // اهتزاز الطفل عند أكل طعام يسمن
+                babyContainer.classList.add('shake-effect');
+                setTimeout(() => babyContainer.classList.remove('shake-effect'), 500);
+            }
+
+            // تدمير الطعام الذي تم التهامه
+            destroyFood(food);
+
+            // تحديث رسومات الطفل وحجمه بناءً على الوزن الجديد
+            updateBabyVisuals();
+
+            // التحقق من خسارة اللعبة (المرض والسمنة المفرطة)
+            if (babyWeight >= 100) {
+                endGame();
+            }
+        }
+
+        // إظهار بالون تعبيري أعلى رأس الطفل
+        function showStatusBubble(text) {
+            bubbleEmoji.innerText = text;
+            bubbleEmoji.style.transform = 'translateX(-50%) scale(1.2)';
+            setTimeout(() => {
+                bubbleEmoji.style.transform = 'translateX(-50%) scale(0)';
+            }, 800);
+        }
+
+        // تحديث مظهر وتمدد جسم الطفل والـ UI بناءً على وزنه الحالي
+        function updateBabyVisuals() {
+            // 1. تحديث شريط الوزن العلوي ونسبته المئوية
+            const clampedWeight = Math.min(100, Math.max(0, babyWeight));
+            weightBar.style.width = `${clampedWeight}%`;
+
+            // 2. تحديث نص حالة الوزن
+            if (babyWeight < 30) {
+                weightStatus.innerText = "👶 رشيق ونشيط";
+                weightStatus.className = "text-lg font-black text-emerald-600";
+            } else if (babyWeight < 60) {
+                weightStatus.innerText = "🧸 بدأ يسمن";
+                weightStatus.className = "text-lg font-black text-amber-500";
+            } else if (babyWeight < 85) {
+                weightStatus.innerText = "🐷 سمين وثقيل";
+                weightStatus.className = "text-lg font-black text-orange-600";
+            } else {
+                weightStatus.innerText = "🚨 مريض جداً وتعبان";
+                weightStatus.className = "text-lg font-black text-red-600 animate-pulse";
+            }
+
+            // 3. تعديل حجم وتمدد جسم الرضيع في الـ SVG
+            // زيادة عرض الجسم (rx) وعرض حاوية الرضيع بالكامل
+            const weightRatio = clampedWeight / 100; // نسبة من 0 لـ 1
+            
+            // تضخيم العرض لـ SVG الجسم
+            const currentRx = baseBodyRx + (weightRatio * 35); // يتضخم من 45 إلى 80
+            const currentRy = baseBodyRy + (weightRatio * 15); // يتضخم من 40 إلى 55
+            babyBody.setAttribute('rx', currentRx);
+            babyBody.setAttribute('ry', currentRy);
+
+            // تعديل الحفاض ليناسب تمدد الجسم
+            const diaperWidthL = 100 - currentRx + 2;
+            const diaperWidthR = 100 + currentRx - 2;
+            babyDiaper.setAttribute('d', `M ${diaperWidthL} 150 Q 100 ${195 + (weightRatio*15)} ${diaperWidthR} 150 Q ${diaperWidthR + 2} 185 100 195 Q ${diaperWidthL - 2} 185 ${diaperWidthL} 150`);
+
+            // إبعاد اليدين لتناسب تمدد الجسم الخارجي
+            babyHandL.setAttribute('cx', 100 - currentRx + 5);
+            babyHandR.setAttribute('cx', 100 + currentRx - 5);
+
+            // تكبير حاوية الطفل الكلية بالبكسل بالتدريج لتعطي طابع تضخم ثلاثي الأبعاد
+            const containerWidth = baseWidth + (weightRatio * 100); // يكبر العرض الإجمالي من 160px لغاية 260px
+            babyContainer.style.width = `${containerWidth}px`;
+        }
+
+        // إنهاء اللعبة وخسارة اللاعب
+        function endGame() {
+            gameActive = false;
+            if (foodInterval) clearInterval(foodInterval);
+            cancelAnimationFrame(animationFrameId);
+            
+            sounds.gameOver();
+            
+            // إظهار شاشة النهاية وعرض الإحصائيات
+            finalScore.innerText = score;
+            gameOverScreen.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
+
+
