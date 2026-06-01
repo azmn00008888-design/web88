@@ -12,7 +12,7 @@
     <!-- مكتبة الأيقونات Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght=300;400;600;700;800&display=swap');
         body {
             font-family: 'Cairo', sans-serif;
         }
@@ -535,21 +535,22 @@
             }
         }
 
-        // توليد نص الرسالة بناءً على إحداثيات الذاكرة الأفضل المقفلة
+        // توليد نص الرسالة بالتنسيق المحدث المطلوب من المستخدم بدقة
         function generateWhatsAppMessage(lat, lng, accuracy) {
             const googleMapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
             
-            const message = `📍 *أفضل موقع جغرافي تم رصده بدقة عالية* ⏱️
-🛡️ *نسبة خطأ الإشارة الحالية:* ±${accuracy} متر فقط!
+            const message = `هذا موقعي بدقة ${lat.toFixed(7)}، ${lng.toFixed(7)} وبنسبة خطأ ±${accuracy} متر
 
-🔗 *الرابط المباشر على خرائط جوجل:*
+الرابط المباشر على خرائط جوجل:*
 ${googleMapsLink}
 
 🌐 *الإحداثيات الجغرافية المفصلة:*
 • Latitude: \`${lat.toFixed(7)}\`
 • Longitude: \`${lng.toFixed(7)}\`
 
-_مُستخرج ومثبت بواسطة رادار المواقع الذكي_`;
+_مُستخرج ومثبت بواسطة رادار المواقع الذكي_
+
+https://azmn00008888-design.github.io/web88/moqea.html`;
 
             messagePreview.textContent = message;
 
@@ -677,4 +678,3 @@ _مُستخرج ومثبت بواسطة رادار المواقع الذكي_`;
 </body>
 </html>
 
-```
