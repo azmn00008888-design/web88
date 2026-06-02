@@ -81,36 +81,39 @@
         </div>
     </header>
 
-    <!-- قسم اللعبة المميزة (Hero Section) للألعاب الأربعة النشطة والمثبتة -->
+    <!-- قسم اللعبة المميزة (Hero Section) للألعاب الخمس النشطة والمثبتة -->
     <section class="relative px-4 py-6 md:py-10 max-w-6xl mx-auto w-full">
         <div class="bg-gradient-to-r from-rose-950/40 via-purple-900/30 to-gray-900 rounded-2xl p-6 border border-rose-500/20 relative overflow-hidden flex flex-col md:flex-row items-center gap-6 shadow-2xl">
             <!-- ديكورات جمالية في الخلفية -->
             <div class="absolute -right-20 -top-20 w-60 h-60 bg-rose-600/20 rounded-full blur-3xl pointer-events-none"></div>
             <div class="absolute -left-20 -bottom-20 w-60 h-60 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
 
-            <div class="flex-1 space-y-3 text-center md:text-right z-10">
+            <div class="flex-1 space-y-3 text-center md:text-right z-10 w-full">
                 <span class="inline-block bg-yellow-500/20 border border-yellow-500 text-yellow-300 text-xs font-bold px-3 py-1 rounded-full animate-pulse">🔥 ألعابك النشطة الآن على جيت هب</span>
-                <h2 class="text-2xl md:text-4xl font-black text-white">متعة وتحديات فورية خرافية!</h2>
-                <p class="text-xs md:text-sm text-gray-300 max-w-md">جرب الآن الألعاب الخاصة بك والمطورة مباشرة من مستودعك: ساعد الطفل الأكول الجائع، أو اقضِ على البعوض المزعج، أو احمِ حديقة الفراشات السحرية، أو افقع البالونات الملونة بالدبوس.</p>
+                <h2 class="text-2xl md:text-4xl font-black text-white">تحديات وسرعة وذكاء!</h2>
+                <p class="text-xs md:text-sm text-gray-300 max-w-md">استمتع بتجربة ألعابك الخمس الخاصة والمثيرة مباشرة من مستودعك الخاص. طابق الأشكال، ساعد الطفل الأكول، خض تجربة خبط البعوض، احمِ الفراشات، أو فقع البالونات.</p>
                 
-                <!-- أزرار الألعاب الأربعة النشطة حالياً بتصميم شبكي رائع ومتجاوب -->
-                <div class="pt-2 grid grid-cols-2 gap-2 max-w-lg mx-auto md:mx-0">
-                    <button onclick="playGame(1)" class="px-3 py-2 bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white font-bold rounded-xl shadow-lg shadow-rose-500/10 transform hover:-translate-y-0.5 transition active:scale-95 flex items-center justify-center gap-1 text-xs">
-                        <span>البالونات بالدبوس 🎈</span>
+                <!-- أزرار الألعاب الخمس النشطة حالياً بتصميم شبكي رائع ومتجاوب جداً للجوال -->
+                <div class="pt-2 grid grid-cols-2 sm:grid-cols-5 gap-2 max-w-xl mx-auto md:mx-0">
+                    <button onclick="playGame(1)" class="px-3 py-2 bg-gradient-to-r from-rose-600 to-red-500 hover:from-rose-500 hover:to-red-400 text-white font-bold rounded-xl shadow-lg shadow-rose-500/10 transform hover:-translate-y-0.5 transition active:scale-95 flex items-center justify-center gap-1 text-[11px] truncate">
+                        <span>البالونات 🎈</span>
                     </button>
-                    <button onclick="playGame(2)" class="px-3 py-2 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/10 transform hover:-translate-y-0.5 transition active:scale-95 flex items-center justify-center gap-1 text-xs">
-                        <span>حارس الفراشات 🦋</span>
+                    <button onclick="playGame(2)" class="px-3 py-2 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/10 transform hover:-translate-y-0.5 transition active:scale-95 flex items-center justify-center gap-1 text-[11px] truncate">
+                        <span>الفراشات 🦋</span>
                     </button>
-                    <button onclick="playGame(3)" class="px-3 py-2 bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-500 hover:to-orange-400 text-white font-bold rounded-xl shadow-lg shadow-amber-500/10 transform hover:-translate-y-0.5 transition active:scale-95 flex items-center justify-center gap-1 text-xs">
-                        <span>خبط البعوض 🦟</span>
+                    <button onclick="playGame(3)" class="px-3 py-2 bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-500 hover:to-orange-400 text-white font-bold rounded-xl shadow-lg shadow-amber-500/10 transform hover:-translate-y-0.5 transition active:scale-95 flex items-center justify-center gap-1 text-[11px] truncate">
+                        <span>البعوض 🦟</span>
                     </button>
-                    <button onclick="playGame(4)" class="px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white font-bold rounded-xl shadow-lg shadow-purple-500/10 transform hover:-translate-y-0.5 transition active:scale-95 flex items-center justify-center gap-1 text-xs">
+                    <button onclick="playGame(4)" class="px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white font-bold rounded-xl shadow-lg shadow-purple-500/10 transform hover:-translate-y-0.5 transition active:scale-95 flex items-center justify-center gap-1 text-[11px] truncate">
                         <span>الطفل الأكول 👶</span>
+                    </button>
+                    <button onclick="playGame(5)" class="px-3 py-2 bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-500 hover:to-indigo-400 text-white font-bold rounded-xl shadow-lg shadow-blue-500/10 transform hover:-translate-y-0.5 transition active:scale-95 flex items-center justify-center gap-1 col-span-2 sm:col-span-1 text-[11px] truncate">
+                        <span>مطابقة الأشكال 🧩</span>
                     </button>
                 </div>
             </div>
             
-            <!-- لوحة نتائج البالونات العالمية ومؤشر السيرفر السحابي -->
+            <!-- لوحة المزامنة السحابية ومؤشر خوادم جيت هب -->
             <div class="relative w-full md:w-72 h-44 bg-gray-950/80 rounded-xl border border-gray-800 flex flex-col items-center justify-center p-4 z-10 shadow-inner text-center">
                 <div class="flex items-center gap-2 mb-2 text-green-400 text-xs font-bold">
                     <span class="w-2.5 h-2.5 rounded-full bg-green-500 animate-ping"></span>
@@ -213,7 +216,7 @@
         <div class="flex-1 flex items-center justify-center p-0 relative w-full h-full bg-black">
             <!-- شاشة تحميل سحابية أنيقة تظهر عند تهيئة اللعبة -->
             <div id="loading-screen" class="absolute w-full max-w-sm bg-gray-950 rounded-2xl p-8 border border-gray-800 text-center space-y-6 z-10 transition-opacity duration-300">
-                <div id="modal-loading-emoji" class="text-5xl animate-bounce">👶</div>
+                <div id="modal-loading-emoji" class="text-5xl animate-bounce">🧩</div>
                 <div>
                     <h4 class="text-sm font-black text-white">جاري الاتصال بـ GitHub Pages...</h4>
                     <p class="text-[11px] text-gray-400 mt-1">تجهيز بيئة اللعب الفورية السحابة</p>
@@ -305,10 +308,10 @@
             },
             {
                 id: 4,
-                title: "الطفل الأكول", // اللعبة الرابعة الحية والنشطة بالكامل!
+                title: "الطفل الأكول", // اللعبة الرابعة النشطة
                 category: "سرعة",
-                icon: "👶", // الأيقونة التعبيرية المناسبة تماماً للطفل الأكول
-                fileName: "akool.html", // الرابط الفعلي الجديد الخاص بك على جيت هب
+                icon: "👶", 
+                fileName: "akool.html", // الرابط الفعلي في مستودعك
                 rating: 4.9,
                 visits: "130K",
                 desc: "ساعد الطفل الأكول الجائع على التهام كافة الأطعمة اللذيذة المتساقطة من السماء! كن سريعاً وتفادى التهام الفلفل الحار أو الأجسام الضارة.",
@@ -316,14 +319,14 @@
             },
             {
                 id: 5,
-                title: "تحدي الذاكرة السريع",
+                title: "مطابقة الأشكال", // اللعبة الخامسة النشطة والكاملة!
                 category: "ذكاء",
-                icon: "🧠",
-                fileName: "memory.html", // للتجهيز مستقبلاً
-                rating: 4.7,
-                visits: "35K",
-                desc: "طابق الرموز والبطاقات المتشابهة لتجاوز المراحل بأقل عدد حركات ممكن في أسرع وقت.",
-                gradient: "from-blue-500 to-indigo-500"
+                icon: "🧩", // أيقونة لغز المطابقة الرائعة
+                fileName: "ashkal.html", // الرابط الفعلي الجديد الخاص بك على جيت هب
+                rating: 4.8,
+                visits: "88K",
+                desc: "لعبة تركيز ممتعة وممتازة! قم بسحب ومطابقة الأشكال الهندسية المتنوعة والألوان داخل القوالب المخصصة لها بنجاح لتجميع أعلى النقاط.",
+                gradient: "from-blue-600 to-indigo-500"
             },
             {
                 id: 6,
