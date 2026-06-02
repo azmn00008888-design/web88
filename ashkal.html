@@ -1,0 +1,526 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة مطابقة الصور للأطفال</title>
+    <!-- Tailwind CSS للتصميم العصري والمبهج -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- خط القاهرة المناسب للأطفال -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #a8ff78 0%, #78ffd6 100%);
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .bounce-active:active {
+            transform: scale(0.95);
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pop-effect {
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+        }
+        @keyframes pulse-slow {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        .pulse-card {
+            animation: pulse-slow 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 overflow-x-hidden">
+
+    <!-- الشاشة الرئيسية للعبة -->
+    <div id="game-container" class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 flex flex-col justify-between flex-grow my-4 relative overflow-hidden border-8 border-emerald-400">
+        
+        <!-- شاشة البدء والترحيب -->
+        <div id="start-screen" class="absolute inset-0 bg-white z-20 flex flex-col items-center justify-center p-6 text-center">
+            <div class="mb-6 transform hover:scale-105 transition-transform duration-300">
+                <!-- شعار مطابقة الصور اللطيف -->
+                <svg class="w-40 h-40 mx-auto" viewBox="0 0 200 200">
+                    <circle cx="100" cy="100" r="80" fill="#ECFDF5"/>
+                    <!-- صورة تفاحة في الأعلى وصورتين متطابقتين بالأسفل للتوضيح -->
+                    <circle cx="100" cy="60" r="25" fill="#EF4444"/>
+                    <path d="M100,42 Q95,35 98,30" stroke="#78350F" stroke-width="3" fill="none"/>
+                    
+                    <circle cx="65" cy="135" r="18" fill="#EF4444"/>
+                    <circle cx="135" cy="135" r="18" fill="#3B82F6"/>
+                    
+                    <!-- سهم يشير للمطابقة -->
+                    <path d="M100,90 L100,105" stroke="#10B981" stroke-width="4" stroke-linecap="round"/>
+                    <path d="M95,100 L100,105 L105,100" stroke="#10B981" stroke-width="4" stroke-linecap="round" fill="none"/>
+                </svg>
+            </div>
+            
+            <h1 class="text-3xl font-black text-emerald-600 mb-2">لعبة مطابقة الأشكال</h1>
+            <p class="text-gray-600 text-lg mb-8 font-bold">انظر إلى الصورة الكبيرة في الأعلى، ثم اختر الصورة المماثلة لها تماماً بالأسفل! 🕵️‍♂️✨</p>
+            
+            <button id="start-btn" class="bounce-active bg-emerald-500 hover:bg-emerald-600 text-white text-2xl font-black py-4 px-10 rounded-2xl shadow-lg border-b-8 border-emerald-700 transition-all transform hover:-translate-y-1 active:translate-y-1 w-full max-w-xs">
+                إبــدأ الـلـعـب! 🎉
+            </button>
+        </div>
+
+        <!-- شاشة عرض النتيجة النهائية -->
+        <div id="result-screen" class="absolute inset-0 bg-white z-10 hidden flex flex-col items-center justify-center p-6 text-center">
+            <h2 class="text-3xl font-black text-indigo-700 mb-4">انتهى الوقت! 🕒</h2>
+            
+            <!-- وعاء عرض التقييم -->
+            <div id="feedback-badge" class="pop-effect w-48 h-48 rounded-full flex flex-col items-center justify-center mb-6 border-8">
+                <!-- سيتم ملؤه ديناميكياً برمز تعبيري ولون مناسب -->
+                <span id="feedback-emoji" class="text-6xl mb-2">🏆</span>
+                <span id="feedback-text" class="text-2xl font-black">ممتاز</span>
+            </div>
+
+            <div class="bg-gray-100 rounded-2xl p-4 w-full max-w-xs mb-8 border-2 border-gray-200">
+                <span class="text-gray-500 block text-lg font-bold">مجموع نقاطك هو:</span>
+                <span id="final-score" class="text-5xl font-black text-emerald-600">0</span>
+            </div>
+
+            <button id="restart-btn" class="bounce-active bg-indigo-500 hover:bg-indigo-600 text-white text-xl font-bold py-3 px-8 rounded-2xl shadow-lg border-b-6 border-indigo-700 transition-all transform hover:-translate-y-1 active:translate-y-1 w-full max-w-xs">
+                العب مرة أخرى 🔄
+            </button>
+        </div>
+
+        <!-- شريط المعلومات العلوي للعبة (النقاط والمؤقت) -->
+        <div class="flex justify-between items-center w-full mb-4">
+            <!-- المؤقت -->
+            <div class="flex items-center gap-2 bg-rose-100 text-rose-700 font-black px-4 py-2 rounded-2xl border-2 border-rose-300">
+                <span class="text-2xl">⏳</span>
+                <span id="timer-display" class="text-2xl min-w-[40px] text-center">30</span>
+            </div>
+
+            <!-- عنوان اللعبة الإرشادي في المنتصف -->
+            <div class="text-center font-black text-lg text-emerald-700">
+                طابق الصورة! 👇
+            </div>
+
+            <!-- النقاط -->
+            <div class="flex items-center gap-2 bg-emerald-100 text-emerald-700 font-black px-4 py-2 rounded-2xl border-2 border-emerald-300">
+                <span class="text-2xl">⭐</span>
+                <span id="score-display" class="text-2xl min-w-[30px] text-center">0</span>
+            </div>
+        </div>
+
+        <!-- صندوق الصورة الكبيرة المستهدفة (في الأعلى) -->
+        <div class="flex flex-col items-center my-2">
+            <div class="text-gray-500 font-bold text-sm mb-2">انظر إلى هذه الصورة جيداً:</div>
+            <div id="target-card" class="pulse-card w-44 h-44 bg-blue-50 border-8 border-blue-400 rounded-3xl p-4 flex items-center justify-center shadow-xl relative overflow-hidden">
+                <div id="target-svg-container" class="w-full h-full flex items-center justify-center">
+                    <!-- سيتم وضع الـ SVG الكبير هنا -->
+                </div>
+            </div>
+        </div>
+
+        <!-- خط فاصل إرشادي مبهج وسهم التوجيه للأسفل -->
+        <div class="flex items-center justify-center my-3">
+            <span class="text-2xl animate-bounce">👇</span>
+            <span class="text-gray-500 font-black text-sm mx-2">اضغط على الشكل المماثل لها بالأسفل</span>
+            <span class="text-2xl animate-bounce">👇</span>
+        </div>
+
+        <!-- ساحة عرض الصور البديلة للاختيار (صورتان بالأسفل) -->
+        <div class="grid grid-cols-2 gap-4">
+            <!-- الخيار الأول -->
+            <button id="option-0" class="bounce-active bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border-4 border-amber-300 hover:border-amber-400 rounded-3xl p-4 flex flex-col items-center justify-center h-36 shadow-lg transition-all transform duration-200 relative overflow-hidden">
+                <div id="option-svg-0" class="w-full h-full flex items-center justify-center">
+                    <!-- سيتم وضع الـ SVG هنا -->
+                </div>
+            </button>
+
+            <!-- الخيار الثاني -->
+            <button id="option-1" class="bounce-active bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border-4 border-amber-300 hover:border-amber-400 rounded-3xl p-4 flex flex-col items-center justify-center h-36 shadow-lg transition-all transform duration-200 relative overflow-hidden">
+                <div id="option-svg-1" class="w-full h-full flex items-center justify-center">
+                    <!-- سيتم وضع الـ SVG هنا -->
+                </div>
+            </button>
+        </div>
+
+        <!-- التنبيه السريع الحركي عند الخطأ والصواب -->
+        <div id="action-toast" class="opacity-0 transition-opacity duration-300 text-center text-lg font-bold py-1.5 rounded-2xl mt-4">
+            رائع! 🎉
+        </div>
+
+    </div>
+
+    <!-- تذييل الصفحة -->
+    <div class="text-emerald-800 text-xs font-bold text-center drop-shadow-md">
+        العاب ذكاء بصرية آمنة ومسلية للأطفال الصغار 🎈
+    </div>
+
+    <script>
+        // داتا الأشكال والألوان المتنوعة المرسومة بدقة لتناسب عقلية الطفل البصرية
+        const gameItemsData = [
+            {
+                name: "بالون",
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full">
+                    <path d="M50,75 Q47,78 50,83 Q53,78 50,75 Z" fill="#EF4444" />
+                    <path d="M50,83 Q45,90 52,98" stroke="#9CA3AF" stroke-width="3" fill="none" stroke-linecap="round" />
+                    <ellipse cx="50" cy="45" rx="22" ry="26" fill="#EC4899" />
+                    <ellipse cx="40" cy="35" rx="5" ry="9" fill="#FFF" opacity="0.4" transform="rotate(-15 40 35)" />
+                </svg>`
+            },
+            {
+                name: "سيارة",
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full">
+                    <path d="M30,50 L36,32 Q38,26 46,26 L64,26 Q72,26 74,32 L80,50 Z" fill="#93C5FD"/>
+                    <path d="M34,48 L38,34 Q40,30 46,30 L53,30 L53,48 Z" fill="#E0F2FE"/>
+                    <path d="M57,48 L57,30 L64,30 Q70,30 72,34 L76,48 Z" fill="#E0F2FE"/>
+                    <path d="M12,65 L12,54 Q12,48 18,48 L82,48 Q88,48 88,54 L88,65 Q88,68 84,68 L16,68 Q12,68 12,65 Z" fill="#EF4444" />
+                    <circle cx="30" cy="68" r="13" fill="#1F2937" />
+                    <circle cx="30" cy="68" r="5" fill="#E5E7EB" />
+                    <circle cx="70" cy="68" r="13" fill="#1F2937" />
+                    <circle cx="70" cy="68" r="5" fill="#E5E7EB" />
+                    <circle cx="84" cy="55" r="4.5" fill="#FBBF24" />
+                </svg>`
+            },
+            {
+                name: "بيت",
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full">
+                    <rect x="25" y="45" width="50" height="40" fill="#FDE047" rx="4" stroke="#D97706" stroke-width="1.5" />
+                    <polygon points="18,46 50,15 82,46" fill="#EF4444" stroke="#B91C1C" stroke-width="1.5" />
+                    <rect x="66" y="22" width="8" height="15" fill="#78350F" />
+                    <rect x="42" y="58" width="16" height="27" fill="#B45309" rx="2" />
+                    <circle cx="46" cy="72" r="2.5" fill="#FCD34D" />
+                    <rect x="30" y="50" width="10" height="10" fill="#38BDF8" rx="1.5" />
+                    <rect x="60" y="50" width="10" height="10" fill="#38BDF8" rx="1.5" />
+                </svg>`
+            },
+            {
+                name: "طفل",
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full">
+                    <path d="M22,42 Q18,16 50,14 Q82,16 78,42 Z" fill="#78350F" />
+                    <circle cx="23" cy="50" r="7" fill="#FDBA74" />
+                    <circle cx="77" cy="50" r="7" fill="#FDBA74" />
+                    <circle cx="50" cy="52" r="24" fill="#FDBA74" />
+                    <circle cx="41" cy="48" r="3.5" fill="#1F2937" />
+                    <circle cx="41" cy="47" r="1" fill="#FFF" />
+                    <circle cx="59" cy="48" r="3.5" fill="#1F2937" />
+                    <circle cx="59" cy="47" r="1" fill="#FFF" />
+                    <circle cx="32" cy="56" r="3" fill="#F472B6" opacity="0.6" />
+                    <circle cx="68" cy="56" r="3" fill="#F472B6" opacity="0.6" />
+                    <path d="M42,58 Q50,68 58,58" stroke="#78350F" stroke-width="3" fill="none" stroke-linecap="round" />
+                </svg>`
+            },
+            {
+                name: "تفاحة",
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full">
+                    <path d="M50,28 Q62,14 66,21 Q60,34 50,28 Z" fill="#10B981" />
+                    <path d="M50,34 Q45,23 48,16" stroke="#78350F" stroke-width="3" fill="none" stroke-linecap="round" />
+                    <path d="M50,38 C34,31 18,44 22,64 C26,82 44,84 50,78 C56,84 74,82 78,64 C82,44 66,31 50,38 Z" fill="#EF4444" />
+                    <ellipse cx="36" cy="48" rx="4.5" ry="9" fill="#FFF" opacity="0.35" transform="rotate(-30 36 48)" />
+                </svg>`
+            },
+            {
+                name: "شمس",
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full">
+                    <path d="M50,8 L50,92 M8,50 L92,50 M20,20 L80,80 M20,80 L80,20" stroke="#FBBF24" stroke-width="6" stroke-linecap="round" />
+                    <circle cx="50" cy="50" r="28" fill="#F59E0B" />
+                    <circle cx="50" cy="50" r="24" fill="#FBBF24" />
+                    <circle cx="42" cy="46" r="3" fill="#78350F" />
+                    <circle cx="58" cy="46" r="3" fill="#78350F" />
+                    <path d="M41,55 Q50,64 59,55" stroke="#78350F" stroke-width="3" fill="none" stroke-linecap="round" />
+                </svg>`
+            },
+            {
+                name: "كرة",
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full">
+                    <circle cx="50" cy="50" r="35" fill="#3B82F6" stroke="#1F2937" stroke-width="2" />
+                    <path d="M15,50 A35,35 0 0,0 85,50" fill="#FBBF24" stroke="#1F2937" stroke-width="1" />
+                    <path d="M18,38 A35,35 0 0,0 82,38" fill="#EF4444" stroke="#1F2937" stroke-width="1" />
+                    <path d="M18,62 A35,35 0 0,1 82,62" fill="#10B981" stroke="#1F2937" stroke-width="1" />
+                    <circle cx="50" cy="50" r="35" fill="none" stroke="#1F2937" stroke-width="2" />
+                    <ellipse cx="40" cy="28" rx="6" ry="3" fill="#FFF" opacity="0.4" transform="rotate(-15 40 28)" />
+                </svg>`
+            },
+            {
+                name: "شجرة",
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full">
+                    <rect x="44" y="55" width="12" height="30" fill="#78350F" rx="2" />
+                    <circle cx="50" cy="34" r="22" fill="#047857" />
+                    <circle cx="34" cy="48" r="18" fill="#059669" />
+                    <circle cx="66" cy="48" r="18" fill="#059669" />
+                    <circle cx="50" cy="46" r="21" fill="#10B981" />
+                    <circle cx="42" cy="34" r="3" fill="#EF4444" />
+                    <circle cx="58" cy="38" r="3" fill="#EF4444" />
+                    <circle cx="50" cy="48" r="3" fill="#EF4444" />
+                    <circle cx="34" cy="46" r="3" fill="#EF4444" />
+                    <circle cx="64" cy="44" r="3" fill="#EF4444" />
+                </svg>`
+            },
+            {
+                name: "أسد",
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full">
+                    <circle cx="50" cy="50" r="38" fill="#D97706"/>
+                    <circle cx="50" cy="50" r="34" fill="#B45309"/>
+                    <circle cx="50" cy="50" r="26" fill="#FBBF24"/>
+                    <circle cx="32" cy="32" r="8" fill="#B45309"/>
+                    <circle cx="32" cy="32" r="5" fill="#FBBF24"/>
+                    <circle cx="68" cy="32" r="8" fill="#B45309"/>
+                    <circle cx="68" cy="32" r="5" fill="#FBBF24"/>
+                    <circle cx="42" cy="46" r="3.5" fill="#1F2937"/>
+                    <circle cx="42" cy="45" r="1" fill="#FFFFFF"/>
+                    <circle cx="58" cy="46" r="3.5" fill="#1F2937"/>
+                    <circle cx="58" cy="45" r="1" fill="#FFFFFF"/>
+                    <path d="M44,52 Q50,56 56,52" stroke="#1F2937" stroke-width="2" fill="none"/>
+                    <polygon points="50,55 46,51 54,51" fill="#EF4444"/>
+                    <path d="M50,55 L50,62" stroke="#1F2937" stroke-width="2"/>
+                    <path d="M44,60 Q50,64 56,60" stroke="#1F2937" stroke-width="2" fill="none"/>
+                </svg>`
+            },
+            {
+                name: "فيل",
+                svg: `<svg viewBox="0 0 100 100" class="w-full h-full">
+                    <ellipse cx="25" cy="48" rx="20" ry="24" fill="#9CA3AF"/>
+                    <ellipse cx="25" cy="48" rx="14" ry="18" fill="#F472B6" opacity="0.6"/>
+                    <ellipse cx="75" cy="48" rx="20" ry="24" fill="#9CA3AF"/>
+                    <ellipse cx="75" cy="48" rx="14" ry="18" fill="#F472B6" opacity="0.6"/>
+                    <circle cx="50" cy="52" r="26" fill="#D1D5DB"/>
+                    <circle cx="42" cy="48" r="3" fill="#111827"/>
+                    <circle cx="42" cy="47" r="1" fill="#FFF"/>
+                    <circle cx="58" cy="48" r="3" fill="#111827"/>
+                    <circle cx="58" cy="47" r="1" fill="#FFF"/>
+                    <path d="M50,56 Q50,78 62,76" fill="none" stroke="#D1D5DB" stroke-width="11" stroke-linecap="round"/>
+                </svg>`
+            }
+        ];
+
+        // حالة اللعبة الحالية
+        let score = 0;
+        let timeLeft = 30; // مدة اللعبة بالثواني
+        let timerId = null;
+        let currentTargetItem = null;
+        let options = [];
+        let canClick = true;
+
+        // مراجع واجهة المستخدم
+        const startScreen = document.getElementById('start-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const timerDisplay = document.getElementById('timer-display');
+        const scoreDisplay = document.getElementById('score-display');
+        const targetSvgContainer = document.getElementById('target-svg-container');
+        const actionToast = document.getElementById('action-toast');
+        const finalScore = document.getElementById('final-score');
+        const feedbackBadge = document.getElementById('feedback-badge');
+        const feedbackEmoji = document.getElementById('feedback-emoji');
+        const feedbackText = document.getElementById('feedback-text');
+
+        // مراجع كروت الخيارات
+        const optionButtons = [
+            document.getElementById('option-0'),
+            document.getElementById('option-1')
+        ];
+        const optionSvgs = [
+            document.getElementById('option-svg-0'),
+            document.getElementById('option-svg-1')
+        ];
+
+        // نغمة نجاح أو خطأ مبهجة وبسيطة باستخدام الـ Web Audio API دون ملفات خارجية لتعمل في كل الظروف
+        function playInteractiveSound(type) {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                if (type === 'correct') {
+                    // نغمة النجاح المبهجة
+                    oscillator.type = 'triangle';
+                    oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    oscillator.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                    oscillator.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); // G5
+                    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + 0.4);
+                } else if (type === 'wrong') {
+                    // نغمة الخطأ الناعمة والمشجعة للتجربة مجدداً
+                    oscillator.type = 'sawtooth';
+                    oscillator.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+                    oscillator.frequency.setValueAtTime(147, audioCtx.currentTime + 0.15); // D3
+                    gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.45);
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + 0.45);
+                }
+            } catch (e) {
+                console.log("Audio API is not supported on this browser.");
+            }
+        }
+
+        // بدء اللعبة
+        function startGame() {
+            score = 0;
+            timeLeft = 30;
+            canClick = true;
+            scoreDisplay.textContent = score;
+            timerDisplay.textContent = timeLeft;
+            
+            // إخفاء الشاشات الإضافية والبدء
+            startScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            
+            // تشغيل مؤقت اللعبة
+            if (timerId) clearInterval(timerId);
+            timerId = setInterval(updateTimer, 1000);
+            
+            // توليد الجولة الأولى
+            generateNewRound();
+        }
+
+        // تحديث عداد الوقت
+        function updateTimer() {
+            timeLeft--;
+            timerDisplay.textContent = timeLeft;
+            
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        // توليد جولة جديدة (اختيار عنصر مستهدف، وعرض خيارين بالأسفل أحدهما مطابق)
+        function generateNewRound() {
+            if (timeLeft <= 0) return;
+            
+            canClick = true;
+            
+            // إعادة ضبط ستايلات الكروت وتفتيح ألوانها
+            optionButtons.forEach(btn => {
+                btn.className = "bounce-active bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border-4 border-amber-300 hover:border-amber-400 rounded-3xl p-4 flex flex-col items-center justify-center h-36 shadow-lg transition-all transform duration-200 relative overflow-hidden";
+            });
+
+            // اختيار عنصرين عشوائيين مختلفين بالكامل من الداتا
+            const shuffled = [...gameItemsData].sort(() => 0.5 - Math.random());
+            options = [shuffled[0], shuffled[1]];
+            
+            // تحديد المستهدف (الصورة الكبيرة في الأعلى)
+            currentTargetItem = options[Math.floor(Math.random() * 2)];
+            
+            // تحديث البطاقة الكبيرة العلوية بالـ SVG
+            targetSvgContainer.innerHTML = currentTargetItem.svg;
+            
+            // وضع الخيارات بالأسفل (أحدهما يطابق الصورة العلوية والآخر مختلف)
+            optionSvgs[0].innerHTML = options[0].svg;
+            optionSvgs[1].innerHTML = options[1].svg;
+        }
+
+        // التعامل مع نقر الطفل على أحد الكروت
+        function handleOptionClick(index) {
+            if (!canClick || timeLeft <= 0) return;
+            canClick = false; // منع النقرات السريعة المتكررة
+
+            const chosenItem = options[index];
+            const clickedButton = optionButtons[index];
+            
+            // فحص هل الكارت المضغوط بالأسفل يطابق الكارت العلوي
+            if (chosenItem.name === currentTargetItem.name) {
+                // إجابة صحيحة! 🎉
+                score += 1;
+                scoreDisplay.textContent = score;
+                playInteractiveSound('correct');
+                
+                // تأثير بصري أخضر رائع ومبهج
+                clickedButton.className = "bg-emerald-100 border-4 border-emerald-500 rounded-3xl p-4 flex flex-col items-center justify-center h-36 shadow-lg transition-all relative overflow-hidden scale-105";
+                
+                showToast("رائع! متطابق تماماً ⭐", "bg-emerald-500 text-white");
+            } else {
+                // إجابة خاطئة ❌
+                score = Math.max(0, score - 1); // لا تنزل النقاط عن الصفر
+                scoreDisplay.textContent = score;
+                playInteractiveSound('wrong');
+                
+                // تظليل الخيار الخاطئ باللون الأحمر الخفيف وإبراز الخيار الصحيح كدعم تعليمي
+                clickedButton.className = "bg-rose-100 border-4 border-rose-500 rounded-3xl p-4 flex flex-col items-center justify-center h-36 shadow-lg transition-all relative overflow-hidden scale-95 opacity-80";
+                
+                const correctIndex = options.findIndex(item => item.name === currentTargetItem.name);
+                optionButtons[correctIndex].className = "bg-emerald-50 border-4 border-emerald-400 rounded-3xl p-4 flex flex-col items-center justify-center h-36 shadow-lg transition-all relative overflow-hidden scale-105";
+
+                showToast("حاول مرة أخرى! 💪", "bg-amber-500 text-white");
+            }
+
+            // انتظار ثانية ونصف ليعي الطفل النتيجة ويلاحظ الكارت المماثل قبل الانتقال للجولة التالية
+            setTimeout(() => {
+                generateNewRound();
+            }, 1500);
+        }
+
+        // عرض إشعار تفاعلي سريع
+        function showToast(text, colorClasses) {
+            actionToast.textContent = text;
+            actionToast.className = `opacity-100 transition-opacity duration-300 text-center text-lg font-black py-1.5 rounded-2xl mt-4 px-4 ${colorClasses} shadow`;
+            
+            setTimeout(() => {
+                actionToast.className = "opacity-0 transition-opacity duration-300 text-center text-lg font-bold py-1.5 rounded-2xl mt-4";
+            }, 1200);
+        }
+
+        // إنهاء الوقت وعرض النتيجة الإجمالية والتقييم اللفظي
+        function endGame() {
+            clearInterval(timerId);
+            timerId = null;
+            canClick = false;
+
+            finalScore.textContent = score;
+            
+            // تحديد المستوى المطلوب بدقة بناءً على الأداء
+            let ratingText = "";
+            let ratingEmoji = "";
+            let ratingColor = "";
+
+            if (score >= 15) {
+                ratingText = "ممتاز";
+                ratingEmoji = "👑";
+                ratingColor = "border-emerald-500 bg-emerald-50 text-emerald-600";
+            } else if (score >= 11) {
+                ratingText = "جيد جداً";
+                ratingEmoji = "🏆";
+                ratingColor = "border-sky-500 bg-sky-50 text-sky-600";
+            } else if (score >= 8) {
+                ratingText = "جيد";
+                ratingEmoji = "🌟";
+                ratingColor = "border-yellow-400 bg-yellow-50 text-yellow-600";
+            } else if (score >= 5) {
+                ratingText = "متوسط";
+                ratingEmoji = "👍";
+                ratingColor = "border-orange-400 bg-orange-50 text-orange-600";
+            } else if (score >= 3) {
+                ratingText = "ضعيف";
+                ratingEmoji = "🌱";
+                ratingColor = "border-amber-500 bg-amber-50 text-amber-700";
+            } else {
+                ratingText = "ضعيف جداً";
+                ratingEmoji = "✏️";
+                ratingColor = "border-rose-400 bg-rose-50 text-rose-500";
+            }
+
+            // تطبيق الهوية البصرية للتقييم
+            feedbackEmoji.textContent = ratingEmoji;
+            feedbackText.textContent = ratingText;
+            feedbackBadge.className = `pop-effect w-48 h-48 rounded-full flex flex-col items-center justify-center mb-6 border-8 ${ratingColor}`;
+            
+            // عرض الشاشة النهائية للنتائج
+            resultScreen.classList.remove('hidden');
+        }
+
+        // مستمعات الأحداث للنقر واللمس
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', startGame);
+        
+        optionButtons[0].addEventListener('click', () => handleOptionClick(0));
+        optionButtons[1].addEventListener('click', () => handleOptionClick(1));
+
+    </script>
+</body>
+</html>
+
+
