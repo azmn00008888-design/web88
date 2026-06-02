@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة مطابقة الصور للأطفال</title>
+    <title>لعبة مطابقة الأشكال للأطفال</title>
     <!-- Tailwind CSS للتصميم العصري والمبهج -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- خط القاهرة المناسب للأطفال -->
@@ -38,44 +38,46 @@
 <body class="min-h-screen flex flex-col items-center justify-between p-4 overflow-x-hidden">
 
     <!-- الشاشة الرئيسية للعبة -->
-    <div id="game-container" class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-6 flex flex-col justify-between flex-grow my-4 relative overflow-hidden border-8 border-emerald-400">
+    <div id="game-container" class="w-full max-w-md bg-white rounded-3xl shadow-2xl p-5 flex flex-col justify-between flex-grow my-2 relative overflow-hidden border-8 border-emerald-400">
         
         <!-- شاشة البدء والترحيب -->
         <div id="start-screen" class="absolute inset-0 bg-white z-20 flex flex-col items-center justify-center p-6 text-center">
             <div class="mb-6 transform hover:scale-105 transition-transform duration-300">
-                <!-- شعار مطابقة الصور اللطيف -->
+                <!-- شعار مطابقة الصور اللطيف بـ 4 خيارات -->
                 <svg class="w-40 h-40 mx-auto" viewBox="0 0 200 200">
                     <circle cx="100" cy="100" r="80" fill="#ECFDF5"/>
-                    <!-- صورة تفاحة في الأعلى وصورتين متطابقتين بالأسفل للتوضيح -->
-                    <circle cx="100" cy="60" r="25" fill="#EF4444"/>
-                    <path d="M100,42 Q95,35 98,30" stroke="#78350F" stroke-width="3" fill="none"/>
+                    <!-- صورة شمس في الأعلى كهدف -->
+                    <circle cx="100" cy="55" r="20" fill="#FBBF24"/>
                     
-                    <circle cx="65" cy="135" r="18" fill="#EF4444"/>
-                    <circle cx="135" cy="135" r="18" fill="#3B82F6"/>
+                    <!-- 4 خيارات بالأسفل للتوضيح بطلة كرتونية -->
+                    <circle cx="65" cy="120" r="12" fill="#EF4444"/>
+                    <circle cx="135" cy="120" r="12" fill="#3B82F6"/>
+                    <circle cx="65" cy="155" r="12" fill="#FBBF24"/>
+                    <circle cx="135" cy="155" r="12" fill="#10B981"/>
                     
                     <!-- سهم يشير للمطابقة -->
-                    <path d="M100,90 L100,105" stroke="#10B981" stroke-width="4" stroke-linecap="round"/>
-                    <path d="M95,100 L100,105 L105,100" stroke="#10B981" stroke-width="4" stroke-linecap="round" fill="none"/>
+                    <path d="M100,80 L100,95" stroke="#10B981" stroke-width="4" stroke-linecap="round"/>
+                    <path d="M95,90 L100,95 L105,90" stroke="#10B981" stroke-width="4" stroke-linecap="round" fill="none"/>
                 </svg>
             </div>
             
             <h1 class="text-3xl font-black text-emerald-600 mb-2">لعبة مطابقة الأشكال</h1>
-            <p class="text-gray-600 text-lg mb-8 font-bold">انظر إلى الصورة الكبيرة في الأعلى، ثم اختر الصورة المماثلة لها تماماً بالأسفل! 🕵️‍♂️✨</p>
+            <p class="text-gray-600 text-lg mb-8 font-bold">طابق الصورة الكبيرة بالخيار الصحيح من بين الصور الأربعة بالأسفل! 🕵️‍♂️✨</p>
             
             <button id="start-btn" class="bounce-active bg-emerald-500 hover:bg-emerald-600 text-white text-2xl font-black py-4 px-10 rounded-2xl shadow-lg border-b-8 border-emerald-700 transition-all transform hover:-translate-y-1 active:translate-y-1 w-full max-w-xs">
                 إبــدأ الـلـعـب! 🎉
             </button>
         </div>
 
-        <!-- شاشة عرض النتيجة النهائية -->
+        <!-- شاشة عرض النتيجة النهائية بالتقييم الإبداعي المبتكر -->
         <div id="result-screen" class="absolute inset-0 bg-white z-10 hidden flex flex-col items-center justify-center p-6 text-center">
             <h2 class="text-3xl font-black text-indigo-700 mb-4">انتهى الوقت! 🕒</h2>
             
-            <!-- وعاء عرض التقييم -->
-            <div id="feedback-badge" class="pop-effect w-48 h-48 rounded-full flex flex-col items-center justify-center mb-6 border-8">
-                <!-- سيتم ملؤه ديناميكياً برمز تعبيري ولون مناسب -->
+            <span class="text-gray-500 text-sm font-bold mb-2 block">لقد حصلت على لقب:</span>
+            <!-- وعاء عرض التقييم الإبداعي -->
+            <div id="feedback-badge" class="pop-effect w-56 h-48 rounded-3xl flex flex-col items-center justify-center mb-6 border-8 px-4 text-center">
                 <span id="feedback-emoji" class="text-6xl mb-2">🏆</span>
-                <span id="feedback-text" class="text-2xl font-black">ممتاز</span>
+                <span id="feedback-text" class="text-2xl font-black">العبقري الخارق</span>
             </div>
 
             <div class="bg-gray-100 rounded-2xl p-4 w-full max-w-xs mb-8 border-2 border-gray-200">
@@ -89,61 +91,75 @@
         </div>
 
         <!-- شريط المعلومات العلوي للعبة (النقاط والمؤقت) -->
-        <div class="flex justify-between items-center w-full mb-4">
-            <!-- المؤقت -->
-            <div class="flex items-center gap-2 bg-rose-100 text-rose-700 font-black px-4 py-2 rounded-2xl border-2 border-rose-300">
-                <span class="text-2xl">⏳</span>
-                <span id="timer-display" class="text-2xl min-w-[40px] text-center">30</span>
+        <div class="flex justify-between items-center w-full mb-3">
+            <!-- المؤقت التنازلي -->
+            <div class="flex items-center gap-2 bg-rose-100 text-rose-700 font-black px-4 py-1.5 rounded-2xl border-2 border-rose-300">
+                <span class="text-xl">⏳</span>
+                <span id="timer-display" class="text-xl min-w-[35px] text-center">30</span>
             </div>
 
             <!-- عنوان اللعبة الإرشادي في المنتصف -->
-            <div class="text-center font-black text-lg text-emerald-700">
-                طابق الصورة! 👇
+            <div class="text-center font-black text-base text-emerald-700">
+                ابحث عن الشكل المطابق! 👇
             </div>
 
-            <!-- النقاط -->
-            <div class="flex items-center gap-2 bg-emerald-100 text-emerald-700 font-black px-4 py-2 rounded-2xl border-2 border-emerald-300">
-                <span class="text-2xl">⭐</span>
-                <span id="score-display" class="text-2xl min-w-[30px] text-center">0</span>
+            <!-- عداد النقاط -->
+            <div class="flex items-center gap-2 bg-emerald-100 text-emerald-700 font-black px-4 py-1.5 rounded-2xl border-2 border-emerald-300">
+                <span class="text-xl">⭐</span>
+                <span id="score-display" class="text-xl min-w-[25px] text-center">0</span>
             </div>
         </div>
 
         <!-- صندوق الصورة الكبيرة المستهدفة (في الأعلى) -->
-        <div class="flex flex-col items-center my-2">
-            <div class="text-gray-500 font-bold text-sm mb-2">انظر إلى هذه الصورة جيداً:</div>
-            <div id="target-card" class="pulse-card w-44 h-44 bg-blue-50 border-8 border-blue-400 rounded-3xl p-4 flex items-center justify-center shadow-xl relative overflow-hidden">
+        <div class="flex flex-col items-center my-1.5">
+            <div class="text-gray-400 font-bold text-xs mb-1">انظر إلى هذه الصورة جيداً:</div>
+            <div id="target-card" class="pulse-card w-36 h-36 bg-blue-50 border-8 border-blue-400 rounded-3xl p-3 flex items-center justify-center shadow-md relative overflow-hidden">
                 <div id="target-svg-container" class="w-full h-full flex items-center justify-center">
                     <!-- سيتم وضع الـ SVG الكبير هنا -->
                 </div>
             </div>
         </div>
 
-        <!-- خط فاصل إرشادي مبهج وسهم التوجيه للأسفل -->
-        <div class="flex items-center justify-center my-3">
-            <span class="text-2xl animate-bounce">👇</span>
-            <span class="text-gray-500 font-black text-sm mx-2">اضغط على الشكل المماثل لها بالأسفل</span>
-            <span class="text-2xl animate-bounce">👇</span>
+        <!-- توجيه بصري تفاعلي بسيط -->
+        <div class="flex items-center justify-center my-2">
+            <span class="text-xl animate-bounce">👇</span>
+            <span class="text-gray-500 font-black text-xs mx-1.5">اضغط على الشكل الصحيح بالأسفل</span>
+            <span class="text-xl animate-bounce">👇</span>
         </div>
 
-        <!-- ساحة عرض الصور البديلة للاختيار (صورتان بالأسفل) -->
-        <div class="grid grid-cols-2 gap-4">
+        <!-- ساحة عرض الصور البديلة للاختيار (4 خيارات مرتبة في شبكة 2×2 بذكاء) -->
+        <div class="grid grid-cols-2 gap-3 my-auto">
             <!-- الخيار الأول -->
-            <button id="option-0" class="bounce-active bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border-4 border-amber-300 hover:border-amber-400 rounded-3xl p-4 flex flex-col items-center justify-center h-36 shadow-lg transition-all transform duration-200 relative overflow-hidden">
+            <button id="option-0" class="bounce-active bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border-4 border-amber-300 hover:border-amber-400 rounded-2xl p-3 flex items-center justify-center h-28 shadow transition-all duration-200 relative overflow-hidden">
                 <div id="option-svg-0" class="w-full h-full flex items-center justify-center">
                     <!-- سيتم وضع الـ SVG هنا -->
                 </div>
             </button>
 
             <!-- الخيار الثاني -->
-            <button id="option-1" class="bounce-active bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border-4 border-amber-300 hover:border-amber-400 rounded-3xl p-4 flex flex-col items-center justify-center h-36 shadow-lg transition-all transform duration-200 relative overflow-hidden">
+            <button id="option-1" class="bounce-active bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border-4 border-amber-300 hover:border-amber-400 rounded-2xl p-3 flex items-center justify-center h-28 shadow transition-all duration-200 relative overflow-hidden">
                 <div id="option-svg-1" class="w-full h-full flex items-center justify-center">
+                    <!-- سيتم وضع الـ SVG هنا -->
+                </div>
+            </button>
+
+            <!-- الخيار الثالث -->
+            <button id="option-2" class="bounce-active bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border-4 border-amber-300 hover:border-amber-400 rounded-2xl p-3 flex items-center justify-center h-28 shadow transition-all duration-200 relative overflow-hidden">
+                <div id="option-svg-2" class="w-full h-full flex items-center justify-center">
+                    <!-- سيتم وضع الـ SVG هنا -->
+                </div>
+            </button>
+
+            <!-- الخيار الرابع -->
+            <button id="option-3" class="bounce-active bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border-4 border-amber-300 hover:border-amber-400 rounded-2xl p-3 flex items-center justify-center h-28 shadow transition-all duration-200 relative overflow-hidden">
+                <div id="option-svg-3" class="w-full h-full flex items-center justify-center">
                     <!-- سيتم وضع الـ SVG هنا -->
                 </div>
             </button>
         </div>
 
         <!-- التنبيه السريع الحركي عند الخطأ والصواب -->
-        <div id="action-toast" class="opacity-0 transition-opacity duration-300 text-center text-lg font-bold py-1.5 rounded-2xl mt-4">
+        <div id="action-toast" class="opacity-0 transition-opacity duration-300 text-center text-base font-bold py-1.5 rounded-2xl mt-3">
             رائع! 🎉
         </div>
 
@@ -151,7 +167,7 @@
 
     <!-- تذييل الصفحة -->
     <div class="text-emerald-800 text-xs font-bold text-center drop-shadow-md">
-        العاب ذكاء بصرية آمنة ومسلية للأطفال الصغار 🎈
+        ألعاب ذكاء بصرية آمنة ومسلية للأطفال الصغار 🎈
     </div>
 
     <script>
@@ -313,17 +329,21 @@
         const feedbackEmoji = document.getElementById('feedback-emoji');
         const feedbackText = document.getElementById('feedback-text');
 
-        // مراجع كروت الخيارات
+        // مراجع كروت الخيارات الأربعة بالأسفل
         const optionButtons = [
             document.getElementById('option-0'),
-            document.getElementById('option-1')
+            document.getElementById('option-1'),
+            document.getElementById('option-2'),
+            document.getElementById('option-3')
         ];
         const optionSvgs = [
             document.getElementById('option-svg-0'),
-            document.getElementById('option-svg-1')
+            document.getElementById('option-svg-1'),
+            document.getElementById('option-svg-2'),
+            document.getElementById('option-svg-3')
         ];
 
-        // نغمة نجاح أو خطأ مبهجة وبسيطة باستخدام الـ Web Audio API دون ملفات خارجية لتعمل في كل الظروف
+        // أصوات تفاعلية بسيطة ومبهجة باستخدام الـ Web Audio API لتعمل على جميع الهواتف
         function playInteractiveSound(type) {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -334,7 +354,6 @@
                 gainNode.connect(audioCtx.destination);
                 
                 if (type === 'correct') {
-                    // نغمة النجاح المبهجة
                     oscillator.type = 'triangle';
                     oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
                     oscillator.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
@@ -344,7 +363,6 @@
                     oscillator.start();
                     oscillator.stop(audioCtx.currentTime + 0.4);
                 } else if (type === 'wrong') {
-                    // نغمة الخطأ الناعمة والمشجعة للتجربة مجدداً
                     oscillator.type = 'sawtooth';
                     oscillator.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
                     oscillator.frequency.setValueAtTime(147, audioCtx.currentTime + 0.15); // D3
@@ -388,62 +406,63 @@
             }
         }
 
-        // توليد جولة جديدة (اختيار عنصر مستهدف، وعرض خيارين بالأسفل أحدهما مطابق)
+        // توليد جولة جديدة بـ 4 خيارات مختلفة
         function generateNewRound() {
             if (timeLeft <= 0) return;
             
             canClick = true;
             
-            // إعادة ضبط ستايلات الكروت وتفتيح ألوانها
+            // إعادة ضبط ستايلات الكروت الأربعة وتفتيح ألوانها لتبدو جديدة تماماً
             optionButtons.forEach(btn => {
-                btn.className = "bounce-active bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border-4 border-amber-300 hover:border-amber-400 rounded-3xl p-4 flex flex-col items-center justify-center h-36 shadow-lg transition-all transform duration-200 relative overflow-hidden";
+                btn.className = "bounce-active bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border-4 border-amber-300 hover:border-amber-400 rounded-2xl p-3 flex items-center justify-center h-28 shadow transition-all duration-200 relative overflow-hidden";
             });
 
-            // اختيار عنصرين عشوائيين مختلفين بالكامل من الداتا
+            // اختيار 4 عناصر عشوائية ومختلفة تماماً من الداتا
             const shuffled = [...gameItemsData].sort(() => 0.5 - Math.random());
-            options = [shuffled[0], shuffled[1]];
+            options = [shuffled[0], shuffled[1], shuffled[2], shuffled[3]];
             
-            // تحديد المستهدف (الصورة الكبيرة في الأعلى)
-            currentTargetItem = options[Math.floor(Math.random() * 2)];
+            // تحديد المستهدف (الصورة الكبيرة في الأعلى) ليكون أحد الخيارات الأربعة
+            currentTargetItem = options[Math.floor(Math.random() * 4)];
             
-            // تحديث البطاقة الكبيرة العلوية بالـ SVG
+            // تحديث بطاقة الصورة الكبيرة العلوية بالـ SVG
             targetSvgContainer.innerHTML = currentTargetItem.svg;
             
-            // وضع الخيارات بالأسفل (أحدهما يطابق الصورة العلوية والآخر مختلف)
-            optionSvgs[0].innerHTML = options[0].svg;
-            optionSvgs[1].innerHTML = options[1].svg;
+            // وضع الخيارات الأربعة بالأسفل داخل الشبكة
+            for (let i = 0; i < 4; i++) {
+                optionSvgs[i].innerHTML = options[i].svg;
+            }
         }
 
-        // التعامل مع نقر الطفل على أحد الكروت
+        // التعامل مع نقر الطفل على أحد الخيارات الأربعة
         function handleOptionClick(index) {
             if (!canClick || timeLeft <= 0) return;
-            canClick = false; // منع النقرات السريعة المتكررة
+            canClick = false; // منع النقرات السريعة المتكررة أثناء مراجعة النتيجة
 
             const chosenItem = options[index];
             const clickedButton = optionButtons[index];
             
-            // فحص هل الكارت المضغوط بالأسفل يطابق الكارت العلوي
+            // فحص المطابقة البصرية
             if (chosenItem.name === currentTargetItem.name) {
                 // إجابة صحيحة! 🎉
                 score += 1;
                 scoreDisplay.textContent = score;
                 playInteractiveSound('correct');
                 
-                // تأثير بصري أخضر رائع ومبهج
-                clickedButton.className = "bg-emerald-100 border-4 border-emerald-500 rounded-3xl p-4 flex flex-col items-center justify-center h-36 shadow-lg transition-all relative overflow-hidden scale-105";
+                // تأثير بصري أخضر مشرق ومبهج
+                clickedButton.className = "bg-emerald-100 border-4 border-emerald-500 rounded-2xl p-3 flex items-center justify-center h-28 shadow relative overflow-hidden scale-105 transition-all duration-150";
                 
                 showToast("رائع! متطابق تماماً ⭐", "bg-emerald-500 text-white");
             } else {
                 // إجابة خاطئة ❌
-                score = Math.max(0, score - 1); // لا تنزل النقاط عن الصفر
+                score = Math.max(0, score - 1); // منع النقاط من الهبوط تحت الصفر
                 scoreDisplay.textContent = score;
                 playInteractiveSound('wrong');
                 
-                // تظليل الخيار الخاطئ باللون الأحمر الخفيف وإبراز الخيار الصحيح كدعم تعليمي
-                clickedButton.className = "bg-rose-100 border-4 border-rose-500 rounded-3xl p-4 flex flex-col items-center justify-center h-36 shadow-lg transition-all relative overflow-hidden scale-95 opacity-80";
+                // تظليل الخيار الخاطئ باللون الأحمر الخفيف وإبراز الخيار الصحيح بلون أخضر
+                clickedButton.className = "bg-rose-100 border-4 border-rose-500 rounded-2xl p-3 flex items-center justify-center h-28 shadow relative overflow-hidden scale-95 opacity-80 transition-all duration-150";
                 
                 const correctIndex = options.findIndex(item => item.name === currentTargetItem.name);
-                optionButtons[correctIndex].className = "bg-emerald-50 border-4 border-emerald-400 rounded-3xl p-4 flex flex-col items-center justify-center h-36 shadow-lg transition-all relative overflow-hidden scale-105";
+                optionButtons[correctIndex].className = "bg-emerald-50 border-4 border-emerald-400 rounded-2xl p-3 flex items-center justify-center h-28 shadow relative overflow-hidden scale-105 transition-all duration-150";
 
                 showToast("حاول مرة أخرى! 💪", "bg-amber-500 text-white");
             }
@@ -457,14 +476,14 @@
         // عرض إشعار تفاعلي سريع
         function showToast(text, colorClasses) {
             actionToast.textContent = text;
-            actionToast.className = `opacity-100 transition-opacity duration-300 text-center text-lg font-black py-1.5 rounded-2xl mt-4 px-4 ${colorClasses} shadow`;
+            actionToast.className = `opacity-100 transition-opacity duration-300 text-center text-base font-black py-1.5 rounded-2xl mt-3 px-4 ${colorClasses} shadow`;
             
             setTimeout(() => {
-                actionToast.className = "opacity-0 transition-opacity duration-300 text-center text-lg font-bold py-1.5 rounded-2xl mt-4";
+                actionToast.className = "opacity-0 transition-opacity duration-300 text-center text-base font-bold py-1.5 rounded-2xl mt-3";
             }, 1200);
         }
 
-        // إنهاء الوقت وعرض النتيجة الإجمالية والتقييم اللفظي
+        // إنهاء الوقت وعرض النتيجة الإجمالية والألقاب المشجعة
         function endGame() {
             clearInterval(timerId);
             timerId = null;
@@ -472,52 +491,54 @@
 
             finalScore.textContent = score;
             
-            // تحديد المستوى المطلوب بدقة بناءً على الأداء
+            // تحديد المستوى المطلوب بدقة بناءً على الأداء والنقاط باستخدام الألقاب الجديدة
             let ratingText = "";
             let ratingEmoji = "";
             let ratingColor = "";
 
-            if (score >= 15) {
-                ratingText = "ممتاز";
-                ratingEmoji = "👑";
+            if (score >= 12) {
+                ratingText = "العبقري الخارق";
+                ratingEmoji = "👑🦸‍♂️";
                 ratingColor = "border-emerald-500 bg-emerald-50 text-emerald-600";
-            } else if (score >= 11) {
-                ratingText = "جيد جداً";
-                ratingEmoji = "🏆";
+            } else if (score >= 9) {
+                ratingText = "النجم اللامع";
+                ratingEmoji = "🌟✨";
                 ratingColor = "border-sky-500 bg-sky-50 text-sky-600";
-            } else if (score >= 8) {
-                ratingText = "جيد";
-                ratingEmoji = "🌟";
+            } else if (score >= 6) {
+                ratingText = "المستكشف الذكي";
+                ratingEmoji = "🔍🦁";
                 ratingColor = "border-yellow-400 bg-yellow-50 text-yellow-600";
-            } else if (score >= 5) {
-                ratingText = "متوسط";
-                ratingEmoji = "👍";
+            } else if (score >= 4) {
+                ratingText = "المغامر البطل";
+                ratingEmoji = "🧗‍♂️🎈";
                 ratingColor = "border-orange-400 bg-orange-50 text-orange-600";
-            } else if (score >= 3) {
-                ratingText = "ضعيف";
-                ratingEmoji = "🌱";
+            } else if (score >= 2) {
+                ratingText = "البطل المثابر";
+                ratingEmoji = "🏃‍♂️🌱";
                 ratingColor = "border-amber-500 bg-amber-50 text-amber-700";
             } else {
-                ratingText = "ضعيف جداً";
-                ratingEmoji = "✏️";
+                ratingText = "صانع التحدي";
+                ratingEmoji = "🚀🛠️";
                 ratingColor = "border-rose-400 bg-rose-50 text-rose-500";
             }
 
-            // تطبيق الهوية البصرية للتقييم
+            // تطبيق الهوية البصرية للتقييم الجديد
             feedbackEmoji.textContent = ratingEmoji;
             feedbackText.textContent = ratingText;
-            feedbackBadge.className = `pop-effect w-48 h-48 rounded-full flex flex-col items-center justify-center mb-6 border-8 ${ratingColor}`;
+            feedbackBadge.className = `pop-effect w-56 h-48 rounded-3xl flex flex-col items-center justify-center mb-6 border-8 px-4 text-center ${ratingColor}`;
             
             // عرض الشاشة النهائية للنتائج
             resultScreen.classList.remove('hidden');
         }
 
-        // مستمعات الأحداث للنقر واللمس
+        // مستمعات الأحداث للنقر واللمس للأزرار الأربعة
         startBtn.addEventListener('click', startGame);
         restartBtn.addEventListener('click', startGame);
         
         optionButtons[0].addEventListener('click', () => handleOptionClick(0));
         optionButtons[1].addEventListener('click', () => handleOptionClick(1));
+        optionButtons[2].addEventListener('click', () => handleOptionClick(2));
+        optionButtons[3].addEventListener('click', () => handleOptionClick(3));
 
     </script>
 </body>
