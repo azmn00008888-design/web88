@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عداد الرواتب المبسط</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        },
+                        gold: {
+                            50: '#fffbeb',
+                            100: '#fef3c7',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            700: '#b45309',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Tajawal', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+        .dark .glass-card {
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-emerald-50 dark:from-slate-900 dark:to-emerald-950 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300 flex flex-col justify-between">
+
+    <!-- الرأس (شريط علوي مبسط) -->
+    <header class="w-full glass-card shadow-sm py-4 px-6">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-primary-600 text-white p-2 rounded-xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <h1 class="text-base sm:text-lg font-black bg-gradient-to-r from-primary-700 to-emerald-600 dark:from-primary-400 dark:to-emerald-400 bg-clip-text text-transparent">موعد الصرف</h1>
+            </div>
+
+            <!-- التاريخ والوضع الداكن -->
+            <div class="flex items-center gap-4">
+                <div class="text-left text-xs hidden sm:block">
+                    <div id="current-gregorian-date" class="font-bold text-slate-700 dark:text-slate-300">--</div>
+                    <div id="current-hijri-date" class="text-amber-600 dark:text-amber-400 font-semibold">--</div>
+                </div>
+                <button id="theme-toggle" class="p-2 rounded-lg bg-slate-200/60 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:scale-105 transition-all">
+                    <svg id="sun-icon" class="h-4 w-4 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 9H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m2.828-9.9a5 5 0 117.07 7.07l-2.828-2.828z" />
+                    </svg>
+                    <svg id="moon-icon" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- محتوى العدادات فقط -->
+    <main class="max-w-5xl w-full mx-auto px-4 py-8 flex-grow flex flex-col justify-center gap-8">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- بطاقة الراتب التقاعدي المباشرة -->
+            <div class="glass-card rounded-3xl p-6 shadow-lg border border-slate-200/50 dark:border-slate-800/80 relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute -right-16 -top-16 w-32 h-32 bg-primary-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="bg-primary-100 dark:bg-primary-900/40 text-primary-800 dark:text-primary-300 text-xs font-bold px-3 py-1 rounded-full">الراتب التقاعدي</span>
+                        <span id="retirement-status" class="text-xs font-bold px-2 py-0.5 rounded-md">--</span>
+                    </div>
+
+                    <!-- تاريخ الصرف الفعلي -->
+                    <div class="mb-4">
+                        <div class="text-xl font-black text-slate-800 dark:text-white" id="retirement-date-formatted">جاري الحساب...</div>
+                        <div class="text-xs text-primary-600 dark:text-primary-400 font-semibold" id="retirement-day-name">--</div>
+                    </div>
+
+                    <!-- العداد التنازلي التفاعلي للتقاعدي -->
+                    <div id="ret-countdown-container">
+                        <div class="grid grid-cols-4 gap-2 text-center my-4">
+                            <div class="bg-slate-100/70 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                                <span id="ret-days" class="block text-xl font-bold text-slate-800 dark:text-white">00</span>
+                                <span class="text-[10px] text-slate-500">يوم</span>
+                            </div>
+                            <div class="bg-slate-100/70 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                                <span id="ret-hours" class="block text-xl font-bold text-slate-800 dark:text-white">00</span>
+                                <span class="text-[10px] text-slate-500">ساعة</span>
+                            </div>
+                            <div class="bg-slate-100/70 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                                <span id="ret-minutes" class="block text-xl font-bold text-slate-800 dark:text-white">00</span>
+                                <span class="text-[10px] text-slate-500">دقيقة</span>
+                            </div>
+                            <div class="bg-slate-100/70 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                                <span id="ret-seconds" class="block text-xl font-bold text-emerald-500 animate-pulse">00</span>
+                                <span class="text-[10px] text-slate-500">ثانية</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-slate-200/40 dark:border-slate-800/40 flex justify-between items-center text-[11px] text-slate-400">
+                    <span>موعد دوري: 1 ميلادي</span>
+                    <span id="retirement-progress-percent">--</span>
+                </div>
+            </div>
+
+            <!-- بطاقة رواتب الموظفين المباشرة -->
+            <div class="glass-card rounded-3xl p-6 shadow-lg border border-slate-200/50 dark:border-slate-800/80 relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute -right-16 -top-16 w-32 h-32 bg-gold-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="bg-gold-100 dark:bg-gold-900/30 text-gold-700 dark:text-gold-300 text-xs font-bold px-3 py-1 rounded-full">رواتب الموظفين</span>
+                        <span id="regular-status" class="text-xs font-bold px-2 py-0.5 rounded-md">--</span>
+                    </div>
+
+                    <!-- تاريخ الصرف الفعلي -->
+                    <div class="mb-4">
+                        <div class="text-xl font-black text-slate-800 dark:text-white" id="regular-date-formatted">جاري الحساب...</div>
+                        <div class="text-xs text-gold-600 dark:text-gold-500 font-semibold" id="regular-day-name">--</div>
+                    </div>
+
+                    <!-- العداد التنازلي التفاعلي للموظفين -->
+                    <div id="reg-countdown-container">
+                        <div class="grid grid-cols-4 gap-2 text-center my-4">
+                            <div class="bg-slate-100/70 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                                <span id="reg-days" class="block text-xl font-bold text-slate-800 dark:text-white">00</span>
+                                <span class="text-[10px] text-slate-500">يوم</span>
+                            </div>
+                            <div class="bg-slate-100/70 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                                <span id="reg-hours" class="block text-xl font-bold text-slate-800 dark:text-white">00</span>
+                                <span class="text-[10px] text-slate-500">ساعة</span>
+                            </div>
+                            <div class="bg-slate-100/70 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                                <span id="reg-minutes" class="block text-xl font-bold text-slate-800 dark:text-white">00</span>
+                                <span class="text-[10px] text-slate-500">دقيقة</span>
+                            </div>
+                            <div class="bg-slate-100/70 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                                <span id="reg-seconds" class="block text-xl font-bold text-gold-500 animate-pulse">00</span>
+                                <span class="text-[10px] text-slate-500">ثانية</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-slate-200/40 dark:border-slate-800/40 flex justify-between items-center text-[11px] text-slate-400">
+                    <span>موعد دوري: 27 ميلادي</span>
+                    <span id="regular-progress-percent">--</span>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- تذييل مبسط جداً -->
+    <footer class="w-full text-center py-4 text-[10px] text-slate-400 dark:text-slate-500 border-t border-slate-200/30 dark:border-slate-800/30">
+        <p>© 2026 حاسبة الرواتب الذكية (النسخة المختصرة)</p>
+    </footer>
+
+    <!-- منطق العمل البرمجي الحسابي الصرف -->
+    <script>
+        // إعداد المظهر
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            sunIcon.classList.remove('hidden');
+            moonIcon.classList.add('hidden');
+        } else {
+            document.documentElement.classList.remove('dark');
+            sunIcon.classList.add('hidden');
+            moonIcon.classList.remove('hidden');
+        }
+
+        themeToggleBtn.addEventListener('click', function() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+        });
+
+        const arabicDays = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+        const arabicMonths = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+
+        function daysInMonth(year, month) {
+            return new Date(year, month + 1, 0).getDate();
+        }
+
+        // حساب الراتب التقاعدي مع الاستثناءات والـ 31 يوماً للشهر السابق
+        function calculateRetirementSalary(year, month) {
+            let baseDate = new Date(year, month, 1);
+            let actualDate = new Date(baseDate);
+            let status = "موعد طبيعي";
+            let statusClass = "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-400";
+
+            let dayOfWeek = baseDate.getDay();
+
+            let prevMonthIndex = month - 1;
+            let prevMonthYear = year;
+            if (prevMonthIndex < 0) {
+                prevMonthIndex = 11;
+                prevMonthYear = year - 1;
+            }
+            let daysInPrevMonth = daysInMonth(prevMonthYear, prevMonthIndex);
+
+            if (dayOfWeek === 5) { // الجمعة
+                actualDate.setDate(actualDate.getDate() - 1);
+                status = `تقديم للخميس ${daysInPrevMonth}`;
+                statusClass = "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-400";
+            } 
+            else if (dayOfWeek === 6) { // السبت
+                if (daysInPrevMonth === 31) {
+                    actualDate.setDate(actualDate.getDate() - 2); // الخميس 30 من الشهر السابق
+                    status = "تقديم (الخميس 30)";
+                    statusClass = "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-400 font-bold";
+                } else {
+                    actualDate.setDate(actualDate.getDate() + 1); // الأحد 2
+                    status = "تأجيل للأحد";
+                    statusClass = "bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-400";
+                }
+            }
+
+            return {
+                baseDate: baseDate,
+                actualDate: actualDate,
+                status: status,
+                statusClass: statusClass,
+                dayName: arabicDays[actualDate.getDay()]
+            };
+        }
+
+        // حساب الراتب العادي (27)
+        function calculateRegularSalary(year, month) {
+            let baseDate = new Date(year, month, 27);
+            let actualDate = new Date(baseDate);
+            let status = "موعد طبيعي";
+            let statusClass = "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-400";
+
+            let dayOfWeek = baseDate.getDay();
+
+            if (dayOfWeek === 5) {
+                actualDate.setDate(26);
+                status = "تقديم (الخميس 26)";
+                statusClass = "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-400";
+            } else if (dayOfWeek === 6) {
+                actualDate.setDate(28);
+                status = "تأجيل (الأحد 28)";
+                statusClass = "bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-400";
+            }
+
+            return {
+                baseDate: baseDate,
+                actualDate: actualDate,
+                status: status,
+                statusClass: statusClass,
+                dayName: arabicDays[actualDate.getDay()]
+            };
+        }
+
+        function getSalaryStatusAndTarget(calculatorFunc) {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth();
+
+            let salaryInfo = calculatorFunc(currentYear, currentMonth);
+            let actualDate = salaryInfo.actualDate;
+
+            let startOfPayDay = new Date(actualDate.getFullYear(), actualDate.getMonth(), actualDate.getDate(), 0, 0, 0);
+            let endOfPayDay = new Date(actualDate.getFullYear(), actualDate.getMonth(), actualDate.getDate(), 23, 59, 59);
+
+            if (now.getTime() < startOfPayDay.getTime()) {
+                return { salaryInfo: salaryInfo, isToday: false, targetTime: startOfPayDay };
+            } else if (now.getTime() >= startOfPayDay.getTime() && now.getTime() <= endOfPayDay.getTime()) {
+                return { salaryInfo: salaryInfo, isToday: true, targetTime: endOfPayDay };
+            } else {
+                let nextSalaryInfo = calculatorFunc(currentYear, currentMonth + 1);
+                let nextActualDate = nextSalaryInfo.actualDate;
+                let nextStartOfPayDay = new Date(nextActualDate.getFullYear(), nextActualDate.getMonth(), nextActualDate.getDate(), 0, 0, 0);
+                return { salaryInfo: nextSalaryInfo, isToday: false, targetTime: nextStartOfPayDay };
+            }
+        }
+
+        function updateCountdowns() {
+            const now = new Date();
+
+            const optionsGregorian = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', numberingSystem: 'latn' };
+            const optionsHijri = { year: 'numeric', month: 'long', day: 'numeric', calendar: 'islamic-umalqura', numberingSystem: 'latn' };
+            
+            document.getElementById('current-gregorian-date').textContent = new Intl.DateTimeFormat('ar-EG', optionsGregorian).format(now);
+            try {
+                document.getElementById('current-hijri-date').textContent = new Intl.DateTimeFormat('ar-SA', optionsHijri).format(now);
+            } catch (e) {}
+
+            // 1. الراتب التقاعدي
+            const retData = getSalaryStatusAndTarget(calculateRetirementSalary);
+            const retMonthName = arabicMonths[retData.salaryInfo.actualDate.getMonth()];
+            document.getElementById('retirement-date-formatted').textContent = `${retData.salaryInfo.actualDate.getDate()} ${retMonthName} ${retData.salaryInfo.actualDate.getFullYear()} م`;
+            document.getElementById('retirement-day-name').textContent = retData.salaryInfo.dayName;
+            
+            const retStatusBadge = document.getElementById('retirement-status');
+            retStatusBadge.textContent = retData.isToday ? "يصرف اليوم 🎉" : retData.salaryInfo.status;
+            retStatusBadge.className = `text-[10px] font-bold px-2 py-0.5 rounded ${retData.isToday ? 'bg-primary-600 text-white animate-bounce' : retData.salaryInfo.statusClass}`;
+
+            const retCountdownContainer = document.getElementById('ret-countdown-container');
+            if (retData.isToday) {
+                retCountdownContainer.innerHTML = `
+                    <div class="my-4 p-3 bg-primary-100/60 dark:bg-primary-950/40 rounded-xl border border-dashed border-primary-500 text-center">
+                        <span class="block text-sm font-black text-primary-700 dark:text-primary-300 animate-pulse">💰 اليوم هو موعد الصرف الفعلي! 🎉</span>
+                    </div>
+                `;
+                document.getElementById('retirement-progress-percent').textContent = `يوم الصرف`;
+            } else {
+                let diff = retData.targetTime.getTime() - now.getTime();
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                retCountdownContainer.innerHTML = `
+                    <div class="grid grid-cols-4 gap-2 text-center my-4">
+                        <div class="bg-slate-100/70 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                            <span class="block text-xl font-bold text-slate-800 dark:text-white">${String(days).padStart(2, '0')}</span>
+                            <span class="text-[10px] text-slate-500">يوم</span>
+                        </div>
+                        <div class="bg-slate-100/70 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                            <span class="block text-xl font-bold text-slate-800 dark:text-white">${String(hours).padStart(2, '0')}</span>
+                            <span class="text-[10px] text-slate-500">ساعة</span>
+                        </div>
+                        <div class="bg-slate-100/70 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                            <span class="block text-xl font-bold text-slate-800 dark:text-white">${String(minutes).padStart(2, '0')}</span>
+                            <span class="text-[10px] text-slate-500">دقيقة</span>
+                        </div>
+                        <div class="bg-slate-100/70 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                            <span class="block text-xl font-bold text-emerald-500 animate-pulse">${String(seconds).padStart(2, '0')}</span>
+                            <span class="text-[10px] text-slate-500">ثانية</span>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('retirement-progress-percent').textContent = `متبقي ${days} يوم`;
+            }
+
+            // 2. رواتب الموظفين
+            const regData = getSalaryStatusAndTarget(calculateRegularSalary);
+            const regMonthName = arabicMonths[regData.salaryInfo.actualDate.getMonth()];
+            document.getElementById('regular-date-formatted').textContent = `${regData.salaryInfo.actualDate.getDate()} ${regMonthName} ${regData.salaryInfo.actualDate.getFullYear()} م`;
+            document.getElementById('regular-day-name').textContent = regData.salaryInfo.dayName;
+
+            const regStatusBadge = document.getElementById('regular-status');
+            regStatusBadge.textContent = regData.isToday ? "يصرف اليوم 🎉" : regData.salaryInfo.status;
+            regStatusBadge.className = `text-[10px] font-bold px-2 py-0.5 rounded ${regData.isToday ? 'bg-gold-600 text-white animate-bounce' : regData.salaryInfo.statusClass}`;
+
+            const regCountdownContainer = document.getElementById('reg-countdown-container');
+            if (regData.isToday) {
+                regCountdownContainer.innerHTML = `
+                    <div class="my-4 p-3 bg-gold-100/60 dark:bg-gold-950/40 rounded-xl border border-dashed border-gold-500 text-center">
+                        <span class="block text-sm font-black text-gold-700 dark:text-gold-300 animate-pulse">💸 اليوم هو موعد الصرف الفعلي! 🎉</span>
+                    </div>
+                `;
+                document.getElementById('regular-progress-percent').textContent = `يوم الصرف`;
+            } else {
+                let diff = regData.targetTime.getTime() - now.getTime();
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                regCountdownContainer.innerHTML = `
+                    <div class="grid grid-cols-4 gap-2 text-center my-4">
+                        <div class="bg-slate-100/70 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                            <span class="block text-xl font-bold text-slate-800 dark:text-white">${String(days).padStart(2, '0')}</span>
+                            <span class="text-[10px] text-slate-500">يوم</span>
+                        </div>
+                        <div class="bg-slate-100/70 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                            <span class="block text-xl font-bold text-slate-800 dark:text-white">${String(hours).padStart(2, '0')}</span>
+                            <span class="text-[10px] text-slate-500">ساعة</span>
+                        </div>
+                        <div class="bg-slate-100/70 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                            <span class="block text-xl font-bold text-slate-800 dark:text-white">${String(minutes).padStart(2, '0')}</span>
+                            <span class="text-[10px] text-slate-500">دقيقة</span>
+                        </div>
+                        <div class="bg-slate-100/70 dark:bg-slate-900/60 p-2.5 rounded-xl">
+                            <span class="block text-xl font-bold text-gold-500 animate-pulse">${String(seconds).padStart(2, '0')}</span>
+                            <span class="text-[10px] text-slate-500">ثانية</span>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('regular-progress-percent').textContent = `متبقي ${days} يوم`;
+            }
+        }
+
+        updateCountdowns();
+        setInterval(updateCountdowns, 1000);
+    </script>
+</body>
+</html>
+
