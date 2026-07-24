@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مسار | المنصة الشاملة لتخطيط الرحلات السياحية والذكاء الاصطناعي</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Cairo) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        hub: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        },
+                        ai: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                        }
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .custom-checkbox:checked + div {
+            border-color: #7c3aed;
+            background-color: #f5f3ff;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col selection:bg-ai-600 selection:text-white">
+
+    <!-- Top Header -->
+    <header class="sticky top-0 z-50 bg-slate-900 text-white shadow-xl border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center py-3 md:h-16 gap-3">
+                <!-- Logo -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="switchMainTab('tab-spotlight')">
+                    <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-ai-600 to-sky-400 flex items-center justify-center text-white shadow-lg shadow-ai-500/30">
+                        <i class="fa-solid fa-compass text-xl"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-black bg-gradient-to-r from-purple-300 via-sky-200 to-white bg-clip-text text-transparent">مسار هَب الشامل</span>
+                        <span class="text-[10px] block text-slate-400 font-bold -mt-1">المنصة الموحدة للرحلات والخرائط والمعالم</span>
+                    </div>
+                </div>
+
+                <!-- API Key Config Bar -->
+                <div class="flex items-center gap-2 bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-700 w-full md:w-auto">
+                    <i class="fa-solid fa-key text-amber-400 text-xs"></i>
+                    <input type="password" id="user-api-key" placeholder="مفتاح Gemini API (اختياري)..." onchange="saveApiKey()" class="bg-transparent text-xs text-white placeholder-slate-400 focus:outline-none w-full md:w-48 font-mono">
+                    <button onclick="toggleKeyVisibility()" class="text-slate-400 hover:text-white text-xs px-1">
+                        <i class="fa-solid fa-eye" id="key-toggle-icon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Navigation Tabs Bar -->
+        <div class="bg-slate-800/90 border-t border-slate-700/80 px-4">
+            <div class="max-w-7xl mx-auto flex items-center gap-1 overflow-x-auto py-2 text-xs font-bold hide-scrollbar">
+                <button onclick="switchMainTab('tab-spotlight')" id="btn-tab-spotlight" class="tab-btn px-4 py-2 rounded-xl transition text-white bg-ai-600 shadow-sm flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-circle-info text-amber-300"></i>استكشاف معلم (صور وفيديو)
+                </button>
+                <button onclick="switchMainTab('tab-planner-interactive')" id="btn-tab-planner-interactive" class="tab-btn px-4 py-2 rounded-xl transition text-slate-300 hover:text-white hover:bg-slate-700 flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-list-check text-sky-400"></i>المخطط التفاعلي للمدن
+                </button>
+                <button onclick="switchMainTab('tab-radius')" id="btn-tab-radius" class="tab-btn px-4 py-2 rounded-xl transition text-slate-300 hover:text-white hover:bg-slate-700 flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-bullseye text-orange-400"></i>البحث بالشعاع والمحيط
+                </button>
+                <button onclick="switchMainTab('tab-quick-ai')" id="btn-tab-quick-ai" class="tab-btn px-4 py-2 rounded-xl transition text-slate-300 hover:text-white hover:bg-slate-700 flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-wand-magic-sparkles text-purple-300"></i>التوليد السريع
+                </button>
+                <button onclick="switchMainTab('tab-saved-trips')" id="btn-tab-saved-trips" class="tab-btn px-4 py-2 rounded-xl transition text-slate-300 hover:text-white hover:bg-slate-700 flex items-center gap-1.5 whitespace-nowrap">
+                    <i class="fa-solid fa-bookmark text-emerald-400"></i>رحلاتي المحفوظة
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- ================= TAB 1: SPOTLIGHT EXPLORER (INFO + IMAGES + VIDEO) ================= -->
+        <section id="tab-spotlight" class="tab-section space-y-6">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                <div class="max-w-3xl">
+                    <span class="bg-amber-100 text-amber-900 font-extrabold px-3 py-1 rounded-full text-xs inline-block mb-2">خاصية جديدة</span>
+                    <h1 class="text-2xl sm:text-3xl font-black text-slate-900">استكشاف معلم سياحي (معلومات + صور + فيديو)</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">اكتب اسم أي معلم أو قرية أو مكان محدد في العالم للحصول على تقرير شاملاً الصور الجذابة وروابط الفيديوهات والجولات المرئية الحية.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                    <div class="md:col-span-8 relative">
+                        <input type="text" id="spotlight-input" placeholder="اكتب اسم المعلم (مثال: متحف اللوفر، برج خليفة، الحِجر العلا، شلالات نياجرا، تايمز سكوير)..." 
+                               class="w-full bg-slate-50 text-slate-900 font-bold text-sm sm:text-base pr-11 pl-4 py-4 rounded-2xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-ai-500">
+                        <i class="fa-solid fa-landmark absolute right-4 top-4.5 text-slate-400 text-lg"></i>
+                    </div>
+                    <div class="md:col-span-4">
+                        <button onclick="fetchSpotlightInfo()" id="spotlight-btn" class="w-full bg-gradient-to-r from-ai-600 to-purple-600 hover:from-ai-700 hover:to-purple-700 text-white font-extrabold py-4 px-6 rounded-2xl shadow-lg shadow-ai-500/25 transition flex items-center justify-center gap-2 text-sm sm:text-base">
+                            <i class="fa-solid fa-camera-retro text-amber-300"></i>
+                            <span>عرض معلومات وصور المعلم</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spotlight Results Display -->
+            <div id="spotlight-result-container" class="hidden bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl space-y-8">
+                <!-- Title Banner -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-2xl">
+                            <i class="fa-solid fa-mountain-city"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-black text-slate-900" id="spotlight-title">--</h2>
+                            <span class="text-xs text-slate-400 font-bold" id="spotlight-location">--</span>
+                        </div>
+                    </div>
+                    <a id="spotlight-map-link" href="#" target="_blank" class="bg-rose-50 text-rose-600 border border-rose-200 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 hover:bg-rose-100 transition">
+                        <i class="fa-solid fa-location-dot"></i> فتح في Google Maps
+                    </a>
+                </div>
+
+                <!-- Info Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Text Details -->
+                    <div class="lg:col-span-7 space-y-4 text-sm text-slate-700 leading-relaxed" id="spotlight-text-body">
+                        <!-- Dynamic Text -->
+                    </div>
+
+                    <!-- Media Section (Images & Videos) -->
+                    <div class="lg:col-span-5 space-y-6 bg-slate-50 p-6 rounded-3xl border border-slate-200">
+                        <!-- Image Gallery Placeholder -->
+                        <div class="space-y-3">
+                            <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-images text-ai-600"></i> المعرض المرئي واللقطات
+                            </h3>
+                            <div class="grid grid-cols-1 gap-3" id="spotlight-images-grid">
+                                <!-- Dynamic Generated Web Images -->
+                            </div>
+                        </div>
+
+                        <!-- Video Player Link Box -->
+                        <div class="space-y-3 border-t border-slate-200 pt-4">
+                            <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                                <i class="fa-fab fa-youtube text-red-600 text-base"></i> فيديو وجولات مرئية حية
+                            </h3>
+                            <p class="text-xs text-slate-500">شاهد تغطيات وصور فيديو وثائقية حية لهذا المكان عبر YouTube مباشرة:</p>
+                            <a id="spotlight-youtube-btn" href="#" target="_blank" class="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold py-3 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-md">
+                                <i class="fa-brands fa-youtube text-base"></i> مشاهدة مقاطع وفيديوهات جولة المعلم
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= TAB 2: COMPREHENSIVE INTERACTIVE PLANNER ================= -->
+        <section id="tab-planner-interactive" class="tab-section hidden space-y-6">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                <div class="max-w-3xl">
+                    <span class="bg-sky-100 text-sky-800 font-extrabold px-3 py-1 rounded-full text-xs inline-block mb-2">استخراج كلي بالأماكن</span>
+                    <h1 class="text-2xl sm:text-3xl font-black text-slate-900">دليل المعالم الشامل مع مربعات التحديد والخرائط</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">أدخل اسم أي مدينة أو قرية لاستخراج كافة المعالم والحدائق والمتاحف والمطاعم مع رابط Google Maps لكل مكان وتحديده في جدول رحلتك.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                    <div class="md:col-span-8 relative">
+                        <input type="text" id="interactive-dest-input" placeholder="اكتب اسم المدينة (مثال: نيويورك، إسطنبول، دبي، العلا)..." 
+                               class="w-full bg-slate-50 text-slate-900 font-bold text-sm sm:text-base pr-11 pl-4 py-4 rounded-2xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                        <i class="fa-solid fa-city absolute right-4 top-4.5 text-slate-400 text-lg"></i>
+                    </div>
+                    <div class="md:col-span-4">
+                        <button onclick="fetchInteractivePlaces()" id="interactive-search-btn" class="w-full bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-700 hover:to-blue-700 text-white font-extrabold py-4 px-6 rounded-2xl shadow-lg shadow-sky-500/25 transition flex items-center justify-center gap-2 text-sm sm:text-base">
+                            <i class="fa-solid fa-layer-group text-amber-300"></i>
+                            <span>استخراج كافة المعالم</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Catalog Section -->
+            <div id="interactive-places-section" class="hidden space-y-6">
+                <div class="bg-slate-900 text-white p-6 rounded-3xl shadow-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-xl font-black" id="interactive-dest-title">دليل معالم المدينة</h2>
+                        <p class="text-xs text-slate-400">حدد الأماكن التي تود إدراجها في خطتك</p>
+                    </div>
+                    <div class="flex items-center gap-3 bg-slate-800 p-3 rounded-2xl text-xs font-bold">
+                        <span>الأماكن المحددة: <span id="interactive-selected-count" class="text-amber-400">0</span></span>
+                        <span>التكلفة: <span id="interactive-selected-cost" class="text-emerald-400">0 ر.س</span></span>
+                    </div>
+                </div>
+
+                <!-- Cards Grid -->
+                <div id="interactive-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Dynamic -->
+                </div>
+
+                <!-- Generate Plan Trigger -->
+                <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-md flex justify-between items-center">
+                    <span class="font-bold text-slate-800 text-sm">جاهز لتوليد برنامج الرحلة اليومي؟</span>
+                    <button onclick="generateInteractiveItinerary()" id="generate-interactive-plan-btn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 px-6 rounded-2xl shadow-lg transition text-xs sm:text-sm">
+                        توليد البرنامج بالذكاء الاصطناعي (AI)
+                    </button>
+                </div>
+
+                <!-- Interactive Output Container -->
+                <div id="interactive-plan-output" class="hidden bg-white p-6 sm:p-8 rounded-3xl border border-purple-200 shadow-xl space-y-4">
+                    <h3 class="font-extrabold text-slate-900 text-lg border-b pb-2">برنامج الرحلة التفاعلي المنسق</h3>
+                    <div id="interactive-plan-body" class="prose max-w-none text-sm leading-relaxed"></div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= TAB 3: RADIUS NEARBY PLANNER ================= -->
+        <section id="tab-radius" class="tab-section hidden space-y-6">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                <div class="max-w-3xl">
+                    <span class="bg-orange-100 text-orange-800 font-extrabold px-3 py-1 rounded-full text-xs inline-block mb-2">البحث بالشعاع والمحيط</span>
+                    <h1 class="text-2xl sm:text-3xl font-black text-slate-900">البحث الجغرافي حول نقطة ارتكاز أو إحداثية</h1>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">أدخل اسم معلم سياحي أو إحداثية مركزية، وحدد نطاق المسافة (3 كم، 5 كم، 7 كم، 10 كم) لمسح الأماكن المجاورة لها.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                    <div class="md:col-span-8">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">المعلم المركز أو الإحداثية</label>
+                        <input type="text" id="radius-anchor-input" placeholder="مثال: برج إيفل، تايمز سكوير، أو إحداثيات: 40.7580, -73.9855..." class="w-full bg-slate-50 text-slate-900 font-bold text-sm p-3.5 rounded-2xl border border-slate-300">
+                    </div>
+                    <div class="md:col-span-4">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">شعاع المسافة</label>
+                        <select id="radius-km-select" class="w-full bg-slate-50 text-slate-900 font-bold text-sm p-3.5 rounded-2xl border border-slate-300">
+                            <option value="3">3 كم (نطاق قريب للمشي)</option>
+                            <option value="5" selected>5 كم (محيط مباشر)</option>
+                            <option value="7">7 كم (نطاق متوسط)</option>
+                            <option value="10">10 كم (تغطية وسيعة)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="fetchRadiusPlaces()" id="radius-search-btn" class="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-extrabold py-4 rounded-2xl shadow-lg transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-bullseye text-amber-300"></i>
+                    <span>مسح المعالم ضمن شعاع المسافة</span>
+                </button>
+            </div>
+
+            <!-- Radius Results Grid Container -->
+            <div id="radius-places-section" class="hidden space-y-6">
+                <div id="radius-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Dynamic -->
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ================= TAB 4: QUICK AI ITINERARY GENERATOR ================= -->
+        <section id="tab-quick-ai" class="tab-section hidden space-y-6">
+            <div class="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-800 space-y-6">
+                <div class="max-w-2xl">
+                    <h2 class="text-2xl font-black flex items-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>المولد السريع للخطة بالتكلفة التقديرية
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-1">اكتب اسم وجهتك للحصول فوراً على برنامج سياحي مع ميزانية تفصيلية.</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">الوجهة</label>
+                        <input type="text" id="quick-dest" placeholder="المدينة أو القرية..." class="w-full bg-slate-800 text-white p-3 rounded-xl border border-slate-700 text-xs font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">المدة (أيام)</label>
+                        <input type="number" id="quick-days" value="4" min="1" max="14" class="w-full bg-slate-800 text-white p-3 rounded-xl border border-slate-700 text-xs font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">أسلوب السفر</label>
+                        <select id="quick-style" class="w-full bg-slate-800 text-white p-3 rounded-xl border border-slate-700 text-xs font-bold">
+                            <option value="عائلي">عائلي</option>
+                            <option value="طبيعة واستجمام">طبيعة واستجمام</option>
+                            <option value="شهر عسل">شهر عسل</option>
+                            <option value="مغامرة">مغامرة</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="generateQuickPlan()" id="quick-generate-btn" class="w-full bg-ai-600 hover:bg-ai-700 text-white font-extrabold py-3.5 rounded-xl shadow-lg transition text-xs sm:text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-sparkles text-amber-300"></i>توليد التخطيط السريع
+                </button>
+            </div>
+
+            <div id="quick-result-box" class="hidden bg-white p-6 sm:p-8 rounded-3xl border border-purple-200 shadow-xl space-y-4">
+                <div id="quick-result-body" class="prose max-w-none text-sm leading-relaxed"></div>
+            </div>
+        </section>
+
+
+        <!-- ================= TAB 5: SAVED TRIPS ================= -->
+        <section id="tab-saved-trips" class="tab-section hidden space-y-6">
+            <div class="flex justify-between items-center bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900">رحلاتي المحفوظة</h2>
+                    <p class="text-xs text-slate-500 mt-1">البرامج السياحية التي تم حفظها للاستخدام لاحقاً</p>
+                </div>
+                <button onclick="clearSavedTrips()" class="text-xs font-bold text-red-600 hover:bg-red-50 px-3 py-2 rounded-xl border border-red-200 transition">
+                    مسح المفضلة
+                </button>
+            </div>
+
+            <div id="saved-trips-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamic -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-6 text-center text-xs border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>جميع الحقوق محفوظة © 2026 مسار هَب الشامل - المنصة المتكاملة لتخطيط الرحلات بالذكاء الاصطناعي</p>
+        </div>
+    </footer>
+
+
+    <!-- APPLICATION JAVASCRIPT LOGIC -->
+    <script>
+        // API Key Handling
+        let customApiKey = localStorage.getItem('masar_user_api_key') || "";
+        const fallbackApiKey = "";
+
+        window.onload = function() {
+            if (customApiKey) {
+                document.getElementById('user-api-key').value = customApiKey;
+            }
+            renderSavedTrips();
+        };
+
+        function getActiveApiKey() {
+            const userKey = document.getElementById('user-api-key').value.trim();
+            return userKey || fallbackApiKey || customApiKey || "";
+        }
+
+        function saveApiKey() {
+            const val = document.getElementById('user-api-key').value.trim();
+            customApiKey = val;
+            localStorage.setItem('masar_user_api_key', val);
+        }
+
+        function toggleKeyVisibility() {
+            const input = document.getElementById('user-api-key');
+            const icon = document.getElementById('key-toggle-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        }
+
+        // Tab Navigation
+        function switchMainTab(tabId) {
+            document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.className = "tab-btn px-4 py-2 rounded-xl transition text-slate-300 hover:text-white hover:bg-slate-700 flex items-center gap-1.5 whitespace-nowrap font-bold";
+            });
+
+            document.getElementById(tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            if (activeBtn) {
+                activeBtn.className = "tab-btn px-4 py-2 rounded-xl transition text-white bg-ai-600 shadow-sm flex items-center gap-1.5 whitespace-nowrap font-bold";
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Helper API Call with Exponential Backoff
+        async function fetchGeminiAi(promptText, isJson = false) {
+            const apiKeyToUse = getActiveApiKey();
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKeyToUse}`;
+
+            const payload = {
+                contents: [{ parts: [{ text: promptText }] }]
+            };
+            if (isJson) {
+                payload.generationConfig = { responseMimeType: "application/json" };
+            }
+
+            let attempts = 0;
+            const maxAttempts = 5;
+
+            while (attempts < maxAttempts) {
+                try {
+                    const res = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                    const data = await res.json();
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) return text;
+                } catch (err) {
+                    attempts++;
+                    if (attempts >= maxAttempts) throw err;
+                    await new Promise(r => setTimeout(r, Math.pow(2, attempts) * 1000));
+                }
+            }
+            throw new Error('فشل الاتصال بالذكاء الاصطناعي');
+        }
+
+
+        // ================= FEATURE 1: SPOTLIGHT EXPLORER (INFO + IMAGES + VIDEO) =================
+        async function fetchSpotlightInfo() {
+            const query = document.getElementById('spotlight-input').value.trim();
+            if (!query) {
+                alert('يرجى كتابة اسم المعلم السياحي.');
+                return;
+            }
+
+            const btn = document.getElementById('spotlight-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i><span>جاري جلب المعلومات والصور...</span>';
+
+            const promptText = `أنت خبير ومعني بالدليل السياحي المرئي. قم بإنشاء تقرير سياحي شامل باللغة العربية عن المعلم أو المكان التالي: "${query}".
+            المطلوب صياغة JSON بالهيكل التالي فقط:
+            {
+                "spotlightName": "${query}",
+                "cityName": "اسم المدينة والدولة",
+                "overview": "نبذة سياحية وتاريخية مفصلة عن المعلم وما يميزه",
+                "bestTimeToVisit": "أفضل أوقات الزيارة خلال اليوم والسنة",
+                "openingHoursAndTickets": "أوقات العمل وأسعار التذاكر التقديرية",
+                "topHighlights": ["نقطة تميز 1", "نقطة تميز 2", "نقطة تميز 3"],
+                "searchKeywords": ["keyword1", "keyword2"]
+            }`;
+
+            try {
+                const jsonRes = await fetchGeminiAi(promptText, true);
+                const parsed = JSON.parse(jsonRes);
+
+                document.getElementById('spotlight-title').innerText = parsed.spotlightName;
+                document.getElementById('spotlight-location').innerText = parsed.cityName;
+
+                const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(parsed.spotlightName + ' ' + parsed.cityName)}`;
+                document.getElementById('spotlight-map-link').href = mapUrl;
+
+                // Youtube Video Search URL
+                const ytUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(parsed.spotlightName + ' tour travel ' + parsed.cityName)}`;
+                document.getElementById('spotlight-youtube-btn').href = ytUrl;
+
+                // Render Text Body
+                document.getElementById('spotlight-text-body').innerHTML = `
+                    <div class="bg-amber-50/60 p-4 rounded-2xl border border-amber-200">
+                        <h4 class="font-extrabold text-amber-900 mb-1">نبذة عن المكان:</h4>
+                        <p>${parsed.overview}</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                            <h4 class="font-bold text-slate-800 text-xs mb-1"><i class="fa-regular fa-clock text-ai-600 ml-1"></i>أوقات العمل والتذاكر:</h4>
+                            <p class="text-xs text-slate-600">${parsed.openingHoursAndTickets}</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                            <h4 class="font-bold text-slate-800 text-xs mb-1"><i class="fa-solid fa-sun text-amber-500 ml-1"></i>أفضل وقت للزيارة:</h4>
+                            <p class="text-xs text-slate-600">${parsed.bestTimeToVisit}</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h4 class="font-bold text-slate-900 text-xs">أبرز الأنشطة والخصائص:</h4>
+                        <ul class="list-disc list-inside text-xs text-slate-600 space-y-1">
+                            ${parsed.topHighlights.map(h => `<li>${h}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+
+                // Render Visual Gallery
+                const imagesGrid = document.getElementById('spotlight-images-grid');
+                imagesGrid.innerHTML = `
+                    <div class="relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-200 h-48 flex items-center justify-center">
+                        <img src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=600&q=80" alt="صورة ${parsed.spotlightName}" class="w-full h-full object-cover">
+                        <span class="absolute bottom-2 right-2 bg-slate-900/80 text-white text-[10px] px-2 py-0.5 rounded font-bold">[صورة ${parsed.spotlightName}]</span>
+                    </div>
+                    <div class="relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm bg-slate-200 h-36 flex items-center justify-center">
+                        <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80" alt="صورة المعلم والمنطقة" class="w-full h-full object-cover">
+                        <span class="absolute bottom-2 right-2 bg-slate-900/80 text-white text-[10px] px-2 py-0.5 rounded font-bold">[صورة المعلم والمنطقة]</span>
+                    </div>
+                `;
+
+                document.getElementById('spotlight-result-container').classList.remove('hidden');
+
+            } catch (e) {
+                alert('حدث خطأ أثناء جلب تفاصيل المعلم.');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-camera-retro text-amber-300"></i><span>عرض معلومات وصور المعلم</span>';
+        }
+
+
+        // ================= FEATURE 2: INTERACTIVE PLANNER =================
+        let interactivePlacesList = [];
+        let selectedInteractiveSet = new Set();
+
+        async function fetchInteractivePlaces() {
+            const dest = document.getElementById('interactive-dest-input').value.trim();
+            if (!dest) return alert('أدخل اسم المدينة أولاً.');
+
+            const btn = document.getElementById('interactive-search-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i><span>جاري جلب كافة المعالم...</span>';
+
+            const promptText = `قم بإدراج جميع المعالم السياحية والحدائق والمتاحف والمطاعم في مدينة/قرية "${dest}" في مصفوفة JSON:
+            {
+                "places": [
+                    { "id": "1", "name": "اسم المكان", "category": "القسم", "desc": "وصف قصير", "estCostSAR": 80 }
+                ]
+            }`;
+
+            try {
+                const resText = await fetchGeminiAi(promptText, true);
+                const parsed = JSON.parse(resText);
+                interactivePlacesList = parsed.places || [];
+                selectedInteractiveSet.clear();
+
+                document.getElementById('interactive-dest-title').innerText = `معالم مدينة ${dest}`;
+                document.getElementById('interactive-places-section').classList.remove('hidden');
+
+                renderInteractiveCards(dest);
+            } catch (e) {
+                alert('عذراً، حدث خطأ أثناء الجلب.');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-layer-group text-amber-300"></i><span>استخراج كافة المعالم</span>';
+        }
+
+        function renderInteractiveCards(destName) {
+            const grid = document.getElementById('interactive-cards-grid');
+            grid.innerHTML = interactivePlacesList.map(p => {
+                const isChecked = selectedInteractiveSet.has(p.id);
+                const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ', ' + destName)}`;
+
+                return `
+                    <label class="cursor-pointer relative block">
+                        <input type="checkbox" onchange="toggleInteractiveSelection('${p.id}')" ${isChecked ? 'checked' : ''} class="custom-checkbox peer hidden">
+                        <div class="bg-white p-4 rounded-2xl border-2 border-slate-200 peer-checked:border-ai-600 peer-checked:bg-ai-50 transition shadow-sm space-y-2">
+                            <div class="flex justify-between items-start">
+                                <h4 class="font-bold text-slate-900 text-sm">${p.name}</h4>
+                                <div class="w-4 h-4 rounded border border-slate-300 peer-checked:bg-ai-600"></div>
+                            </div>
+                            <p class="text-xs text-slate-500">${p.desc}</p>
+                            <div class="flex justify-between items-center text-[10px] pt-2 border-t border-slate-100">
+                                <a href="${mapUrl}" target="_blank" onclick="event.stopPropagation()" class="text-rose-600 font-bold"><i class="fa-solid fa-location-dot"></i> Google Maps</a>
+                                <span class="font-bold text-emerald-600">${p.estCostSAR} ر.س</span>
+                            </div>
+                        </div>
+                    </label>
+                `;
+            }).join('');
+        }
+
+        function toggleInteractiveSelection(id) {
+            if (selectedInteractiveSet.has(id)) selectedInteractiveSet.delete(id);
+            else selectedInteractiveSet.add(id);
+
+            document.getElementById('interactive-selected-count').innerText = selectedInteractiveSet.size;
+        }
+
+        async function generateInteractiveItinerary() {
+            if (selectedInteractiveSet.size === 0) return alert('اختر بعض الأماكن أولاً.');
+            const dest = document.getElementById('interactive-dest-input').value.trim();
+
+            const selectedList = interactivePlacesList.filter(p => selectedInteractiveSet.has(p.id));
+            const placesText = selectedList.map(p => `- ${p.name}`).join('\n');
+
+            const promptText = `قم بإنشاء جدول سياحي يومي لمنطقة ${dest} يضم فقط الأماكن التالية:\n${placesText}`;
+
+            document.getElementById('interactive-plan-output').classList.remove('hidden');
+            document.getElementById('interactive-plan-body').innerHTML = 'جاري التنسيق...';
+
+            try {
+                const text = await fetchGeminiAi(promptText);
+                document.getElementById('interactive-plan-body').innerHTML = text.replace(/\n/g, '<br>');
+            } catch (e) {
+                document.getElementById('interactive-plan-body').innerText = 'حدث خطأ في التوليد.';
+            }
+        }
+
+
+        // ================= FEATURE 3: RADIUS NEARBY =================
+        async function fetchRadiusPlaces() {
+            const anchor = document.getElementById('radius-anchor-input').value.trim();
+            const km = document.getElementById('radius-km-select').value;
+            if (!anchor) return alert('أدخل المعلم المركز أولاً.');
+
+            const btn = document.getElementById('radius-search-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i><span>جاري مسح الشعاع...</span>';
+
+            const promptText = `هات جميع المعالم الواقعة في نطاق ${km} كم حول المعلم "${anchor}" في مصفوفة JSON:
+            { "places": [{ "name": "اسم المكان", "distanceKm": 1.5, "desc": "وصف" }] }`;
+
+            try {
+                const resText = await fetchGeminiAi(promptText, true);
+                const parsed = JSON.parse(resText);
+                const grid = document.getElementById('radius-cards-grid');
+
+                grid.innerHTML = (parsed.places || []).map(p => `
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                        <div class="flex justify-between items-center">
+                            <h4 class="font-bold text-slate-900 text-sm">${p.name}</h4>
+                            <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded">${p.distanceKm} كم</span>
+                        </div>
+                        <p class="text-xs text-slate-500">${p.desc}</p>
+                    </div>
+                `).join('');
+
+                document.getElementById('radius-places-section').classList.remove('hidden');
+            } catch (e) {
+                alert('حدث خطأ أثناء المسح.');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-bullseye text-amber-300"></i><span>مسح المعالم ضمن شعاع المسافة</span>';
+        }
+
+
+        // ================= FEATURE 4: QUICK AI PLANNER =================
+        async function generateQuickPlan() {
+            const dest = document.getElementById('quick-dest').value.trim();
+            const days = document.getElementById('quick-days').value;
+            const style = document.getElementById('quick-style').value;
+            if (!dest) return alert('أدخل اسم الوجهة أولاً.');
+
+            const btn = document.getElementById('quick-generate-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i><span>جاري التوليد...</span>';
+
+            const promptText = `صمم جدول سياحي وتكلفة بالريال لمدينة ${dest} لمدة ${days} أيام بنمط ${style}.`;
+
+            try {
+                const resText = await fetchGeminiAi(promptText);
+                document.getElementById('quick-result-box').classList.remove('hidden');
+                document.getElementById('quick-result-body').innerHTML = resText.replace(/\n/g, '<br>');
+            } catch (e) {
+                alert('عذراً، حدث خطأ أثناء التوليد.');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-sparkles text-amber-300"></i>توليد التخطيط السريع';
+        }
+
+
+        // Saved Trips Storage Logic
+        let savedTrips = JSON.parse(localStorage.getItem('masar_saved_hub_trips') || '[]');
+
+        function renderSavedTrips() {
+            const grid = document.getElementById('saved-trips-grid');
+            if (savedTrips.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center py-8 text-slate-400 text-xs">لا توجد رحلات محفوظة حالياً</div>';
+                return;
+            }
+
+            grid.innerHTML = savedTrips.map(t => `
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2 text-xs">
+                    <h4 class="font-bold text-slate-900">${t.title}</h4>
+                    <p class="text-slate-500">${t.date}</p>
+                </div>
+            `).join('');
+        }
+
+        function clearSavedTrips() {
+            savedTrips = [];
+            localStorage.setItem('masar_saved_hub_trips', '[]');
+            renderSavedTrips();
+        }
+    </script>
+</body>
+</html>
+
