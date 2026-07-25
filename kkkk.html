@@ -83,7 +83,7 @@
                 <!-- API Key Config Bar -->
                 <div class="flex items-center gap-2 bg-slate-800/90 px-3 py-1.5 rounded-xl border border-slate-700 w-full md:w-auto">
                     <i class="fa-solid fa-key text-amber-400 text-xs"></i>
-                    <input type="password" id="user-api-key" placeholder="مفتاح Gemini API (اختياري)..." onchange="saveApiKey()" class="bg-transparent text-xs text-white placeholder-slate-400 focus:outline-none w-full md:w-48 font-mono">
+                    <input type="password" id="user-api-key" placeholder="أدخل مفتاح Gemini API..." onchange="saveApiKey()" class="bg-transparent text-xs text-white placeholder-slate-400 focus:outline-none w-full md:w-56 font-mono">
                     <button onclick="toggleKeyVisibility()" class="text-slate-400 hover:text-white text-xs px-1">
                         <i class="fa-solid fa-eye" id="key-toggle-icon"></i>
                     </button>
@@ -372,8 +372,7 @@
 
     <!-- APPLICATION JAVASCRIPT LOGIC -->
     <script>
-        // API Key Standard Handling
-        const apiKey = ""; // Set automatically by preview environment at runtime
+        const envApiKey = ""; // Automatic Key Injection
         let customApiKey = localStorage.getItem('masar_user_api_key') || "";
 
         window.onload = function() {
@@ -385,7 +384,7 @@
 
         function getActiveApiKey() {
             const userKey = document.getElementById('user-api-key').value.trim();
-            return userKey || customApiKey || apiKey || "";
+            return userKey || customApiKey || envApiKey || "";
         }
 
         function saveApiKey() {
@@ -406,7 +405,7 @@
             }
         }
 
-        // Custom Modal UI Replacing alert()
+        // Modal for Notifications
         function showCustomModal(title, message, isError = true) {
             document.getElementById('modal-title').innerText = title;
             document.getElementById('modal-message').innerText = message;
@@ -442,49 +441,73 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Helper API Call with Exponential Backoff and Robust Handling
+        // Adaptive AI Multi-Model Handler (Handles GitHub Pages / Custom API Keys automatically)
         async function fetchGeminiAi(promptText, isJson = false) {
             const keyToUse = getActiveApiKey();
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${keyToUse}`;
-
-            const payload = {
-                contents: [{ parts: [{ text: promptText }] }]
-            };
-            if (isJson) {
-                payload.generationConfig = { responseMimeType: "application/json" };
+            if (!keyToUse) {
+                throw new Error('يرجى إدخال مفتاح Gemini API في أعلى الشاشة أولاً لتشغيل الخدمة عبر GitHub Pages.');
             }
 
-            let attempts = 0;
-            const maxAttempts = 5;
-            const delays = [1000, 2000, 4000, 8000, 16000];
+            // Fallback model list if the primary preview model is unavailable on external keys
+            const candidateModels = [
+                'gemini-1.5-flash',
+                'gemini-2.0-flash',
+                'gemini-2.5-flash-preview-09-2025'
+            ];
 
-            while (attempts < maxAttempts) {
-                try {
-                    const res = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
+            let lastError = null;
 
-                    if (!res.ok) {
-                        const errData = await res.json().catch(() => ({}));
-                        throw new Error(errData?.error?.message || `خطأ في الاتصال بالخادم (${res.status})`);
+            for (const modelName of candidateModels) {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${keyToUse}`;
+                const payload = {
+                    contents: [{ parts: [{ text: promptText }] }]
+                };
+                if (isJson) {
+                    payload.generationConfig = { responseMimeType: "application/json" };
+                }
+
+                let attempts = 0;
+                const maxAttempts = 3;
+
+                while (attempts < maxAttempts) {
+                    try {
+                        const res = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!res.ok) {
+                            const errData = await res.json().catch(() => ({}));
+                            const msg = errData?.error?.message || `HTTP ${res.status}`;
+                            
+                            // If model isn't supported on this key, skip immediately to next candidate
+                            if (res.status === 404 || msg.includes('not found') || msg.includes('not supported')) {
+                                throw new Error(`MODEL_NOT_FOUND: ${msg}`);
+                            }
+                            throw new Error(msg);
+                        }
+
+                        const data = await res.json();
+                        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                        if (text) return text;
+                        throw new Error("استجابة فارغة من النموذج");
+                    } catch (err) {
+                        lastError = err;
+                        if (err.message.startsWith('MODEL_NOT_FOUND')) {
+                            break; // Skip to next model candidate immediately
+                        }
+                        attempts++;
+                        if (attempts >= maxAttempts) break;
+                        await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempts)));
                     }
-
-                    const data = await res.json();
-                    let text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (text) return text;
-                    throw new Error("لم يتم استلام نص استجابة صالح");
-                } catch (err) {
-                    attempts++;
-                    if (attempts >= maxAttempts) throw err;
-                    await new Promise(r => setTimeout(r, delays[attempts - 1] || 2000));
                 }
             }
-            throw new Error('فشل الاتصال بالذكاء الاصطناعي بعد عدة محاولات.');
+
+            throw new Error(lastError?.message?.replace('MODEL_NOT_FOUND: ', '') || 'فشل الاتصال بجميع نماذج الذكاء الاصطناعي المتاحة.');
         }
 
-        // Clean JSON Output in case model includes Markdown wraps
+        // Helper to strip markdown json wrapper if present
         function cleanJsonText(rawText) {
             let cleaned = rawText.trim();
             if (cleaned.startsWith("```json")) {
@@ -572,7 +595,7 @@
                 document.getElementById('spotlight-result-container').classList.remove('hidden');
 
             } catch (e) {
-                showCustomModal('خطأ في الجلب', e.message || 'حدث خطأ أثناء جلب تفاصيل المعلم، يرجى المحاولة لاحقاً.');
+                showCustomModal('خطأ في الجلب', e.message || 'حدث خطأ أثناء جلب تفاصيل المعلم.');
             }
 
             btn.disabled = false;
@@ -618,7 +641,7 @@
 
                 renderInteractiveCards();
             } catch (e) {
-                showCustomModal('عذراً، حدث خطأ أثناء الجلب', e.message || 'يرجى التحقق من الاتصال والمحاولة مرة أخرى.');
+                showCustomModal('عذراً، حدث خطأ أثناء الجلب', e.message || 'يرجى التحقق من الاتصال.');
             }
 
             btn.disabled = false;
