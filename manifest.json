@@ -1,0 +1,15 @@
+{
+  "name": "صرف الراتب",
+  "short_name": "الرواتب",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#1b5e20",
+  "theme_color": "#1b5e20",
+  "icons": [
+    {
+      "src": "Design%20Image.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
