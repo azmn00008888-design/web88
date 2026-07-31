@@ -1,0 +1,16 @@
+{
+  "name": "أوقات الصلاة",
+  "short_name": "الصلاة",
+  "start_url": "./salawat.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0B5D4B",
+  "theme_color": "#0B5D4B",
+  "icons": [
+    {
+      "src": "salawat.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
