@@ -1,0 +1,20 @@
+{
+  "name": "الرئيسية",
+  "short_name": "الرئيسية",
+  "start_url": "./islam3.html",
+  "display": "standalone",
+  "background_color": "#0B5D4B",
+  "theme_color": "#0B5D4B",
+  "icons": [
+    {
+      "src": "islam3.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "islam3.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
