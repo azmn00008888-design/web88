@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تابع كورة - مباريات اليوم بث مباشر</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Cairo Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- HLS.js Library to play .m3u8 live streams smoothly -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0b0f19',
+                        darkCard: '#131b2e',
+                        darkBorder: '#1f293d',
+                        brandGreen: '#10b981',
+                        brandNeon: '#22c55e',
+                        brandCyan: '#38bdf8'
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+        }
+        .grid-pattern {
+            background-image: radial-gradient(rgba(34, 197, 94, 0.07) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+        .pulse-live {
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            animation: pulse-red 1.5s infinite;
+        }
+        @keyframes pulse-red {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .glass-header {
+            background: rgba(19, 27, 46, 0.85);
+            backdrop-filter: blur(12px);
+        }
+        .video-container iframe,
+        .video-container video {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body class="grid-pattern min-h-screen flex flex-col justify-between selection:bg-brandNeon selection:text-black">
+
+    <!-- Navbar -->
+    <header class="sticky top-0 z-40 glass-header border-b border-darkBorder">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <button id="menuBtn" class="p-2 text-gray-300 hover:text-white rounded-lg bg-darkCard border border-darkBorder md:hidden">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <a href="#" class="flex items-center gap-2">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brandGreen to-brandCyan flex items-center justify-center text-black font-black text-xl shadow-lg shadow-brandGreen/20">
+                        <i class="fa-solid fa-play"></i>
+                    </div>
+                    <div>
+                        <span class="text-xl font-black text-white">تابع <span class="text-brandNeon">كورة</span></span>
+                        <span class="block text-[10px] text-gray-400 -mt-1 font-semibold">Tab3 Koora Live HD</span>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Quick Links Desktop -->
+            <nav class="hidden md:flex items-center gap-6 font-bold text-sm">
+                <a href="#" class="text-brandNeon hover:text-white transition">الرئيسية</a>
+                <a href="#matches" class="text-gray-300 hover:text-brandNeon transition">جدول اليوم</a>
+                <a href="#channels" class="text-gray-300 hover:text-brandNeon transition">القنوات الناقلة</a>
+            </nav>
+
+            <div class="flex items-center gap-3">
+                <button onclick="openChangeLinkModal()" class="px-3.5 py-1.5 rounded-xl bg-brandNeon text-black hover:bg-emerald-400 font-bold text-xs flex items-center gap-2 shadow-lg shadow-brandNeon/20 transition">
+                    <i class="fa-solid fa-link"></i>
+                    <span>تعديل رابط البث</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto px-4 py-8 flex-1 w-full">
+
+        <!-- Hero Banner Section -->
+        <section class="text-center py-6 mb-8 rounded-2xl bg-gradient-to-b from-darkCard/90 to-darkCard/40 border border-darkBorder p-6 relative overflow-hidden shadow-2xl">
+            <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-72 h-72 bg-brandGreen/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold mb-4">
+                <span class="w-2 h-2 rounded-full bg-red-500 pulse-live"></span>
+                <span>بث مباشر جاري الآن</span>
+            </div>
+
+            <h1 class="text-2xl sm:text-4xl font-black text-white mb-3 leading-snug">
+                موقع تابع كورة — <span class="text-brandNeon">مباريات اليوم</span> <span class="text-brandCyan">بث مباشر</span>
+            </h1>
+            <p class="text-sm sm:text-base font-semibold text-gray-400 max-w-2xl mx-auto mb-2">
+                مشاهدة البث المباشر بأعلى جودة HD وبدون تقطيع مجاناً عبر سيرفرات المباشرة.
+            </p>
+        </section>
+
+        <!-- Current Date Title Bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-6 bg-brandCyan rounded-full"></div>
+                <h2 class="text-xl font-bold text-white">المباراة المنقولة الآن</h2>
+            </div>
+            <div class="bg-brandNeon/10 border border-brandNeon/20 px-3.5 py-1.5 rounded-xl text-brandNeon text-xs font-bold w-fit">
+                <i class="fa-regular fa-calendar-alt ml-1"></i> الأحد، 2 أغسطس 2026
+            </div>
+        </div>
+
+        <!-- Matches Container -->
+        <div id="matchesContainer" class="space-y-8">
+            <!-- Dynamic Content -->
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-darkCard border-t border-darkBorder mt-12 py-8 text-center text-xs text-gray-400">
+        <div class="max-w-5xl mx-auto px-4 space-y-3">
+            <div class="flex items-center justify-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-brandNeon flex items-center justify-center text-black font-bold">
+                    <i class="fa-solid fa-play text-sm"></i>
+                </div>
+                <span class="text-base font-extrabold text-white">تابع كورة</span>
+            </div>
+            <p class="text-gray-400">جميع الحقوق محفوظة لموقع تابع كورة - بث مباشر للمباريات</p>
+        </div>
+    </footer>
+
+    <!-- Video Stream Player Modal -->
+    <div id="playerModal" class="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-darkCard border border-darkBorder w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
+            <!-- Player Header -->
+            <div class="p-4 bg-darkBg flex items-center justify-between border-b border-darkBorder">
+                <div class="flex items-center gap-3">
+                    <span class="px-2.5 py-1 rounded bg-red-600 text-white font-extrabold text-[10px] animate-pulse">LIVE</span>
+                    <h3 id="modalMatchTitle" class="font-bold text-sm sm:text-base text-white truncate max-w-xs sm:max-w-md">ريال مدريد ضد برشلونة</h3>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="openChangeLinkModal()" title="تعديل الرابط" class="px-2.5 py-1 bg-brandNeon/10 text-brandNeon hover:bg-brandNeon hover:text-black rounded-lg text-xs font-bold border border-brandNeon/30 transition">
+                        <i class="fa-solid fa-pen-to-square ml-1"></i> تغيير الرابط
+                    </button>
+                    <button onclick="closePlayerModal()" class="p-2 text-gray-400 hover:text-white rounded-lg hover:bg-red-500/20 hover:text-red-400 transition">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Video Display Area -->
+            <div class="relative bg-black aspect-video w-full flex items-center justify-center border-b border-darkBorder overflow-hidden video-container" id="playerDisplayArea">
+                <!-- Video player will load here -->
+            </div>
+
+            <!-- Server Selector Bar -->
+            <div class="p-3 bg-darkBg flex flex-wrap items-center justify-between gap-2 border-b border-darkBorder text-xs font-semibold">
+                <span class="text-gray-400"><i class="fa-solid fa-server ml-1 text-brandNeon"></i> سيرفرات البث المتاحة:</span>
+                <div class="flex flex-wrap gap-2" id="serverContainer"></div>
+            </div>
+
+            <!-- Match Details -->
+            <div class="p-4 bg-darkCard overflow-y-auto space-y-3">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+                    <div class="p-2 rounded-xl bg-darkBg border border-darkBorder">
+                        <span class="block text-gray-400 font-semibold mb-0.5">البطولة</span>
+                        <span id="modalLeague" class="font-bold text-white">دوري أبطال أوروبا</span>
+                    </div>
+                    <div class="p-2 rounded-xl bg-darkBg border border-darkBorder">
+                        <span class="block text-gray-400 font-semibold mb-0.5">القناة الناقلة</span>
+                        <span id="modalChannel" class="font-bold text-brandCyan">beIN Sports HD 1</span>
+                    </div>
+                    <div class="p-2 rounded-xl bg-darkBg border border-darkBorder">
+                        <span class="block text-gray-400 font-semibold mb-0.5">المعلق</span>
+                        <span id="modalCommentator" class="font-bold text-white">عصام الشوالي</span>
+                    </div>
+                    <div class="p-2 rounded-xl bg-darkBg border border-darkBorder">
+                        <span class="block text-gray-400 font-semibold mb-0.5">الوقت</span>
+                        <span id="modalTime" class="font-bold text-brandNeon">10:00 مساءً</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal to easily update/change the M3U8/Embed Link -->
+    <div id="changeLinkModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-darkCard border border-darkBorder w-full max-w-lg rounded-2xl p-6 shadow-2xl relative">
+            <div class="flex items-center justify-between mb-4 border-b border-darkBorder pb-3">
+                <h3 class="font-bold text-lg text-white flex items-center gap-2">
+                    <i class="fa-solid fa-link text-brandNeon"></i> تغيير رابط البث المباشر
+                </h3>
+                <button onclick="closeChangeLinkModal()" class="text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form onsubmit="handleSaveCustomLink(event)" class="space-y-4 text-xs font-semibold">
+                <div>
+                    <label class="block text-gray-300 mb-1">ضع رابط البث المباشر هنا (رابط m3u8 أو iFrame):</label>
+                    <textarea id="customLinkInput" rows="4" required class="w-full bg-darkBg border border-darkBorder rounded-xl p-3 text-white focus:outline-none focus:border-brandNeon font-mono text-[11px]" dir="ltr"></textarea>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-darkBorder">
+                    <button type="button" onclick="closeChangeLinkModal()" class="px-4 py-2 rounded-xl bg-darkBg border border-darkBorder text-gray-400 font-bold hover:text-white">إلغاء</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl bg-brandNeon text-black font-bold hover:bg-emerald-400 shadow-lg shadow-brandNeon/20">تحديث البث فوراً</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main JavaScript Logic -->
+    <script>
+        // Default Stream Link provided by user added as primary server
+        let activeStreamUrl = "https://iframe.rumsport8.live/stream.m3u8?is_vip=false&token=7dfab79fa7cc2dae58b0a74a4fc23c41c57bac16&url=https%3A%2F%2Flivecdn-bp-livestream.rumsport7.live%2Fsla%2F1-6a4fbe919a1d202ef623a0ac%2Findex.m3u8&verify=1785693600-TJNZAlgogMXBOB18dRoZmQYwizkEBA5B0iVYFMAKsiY%3D";
+
+        let matchesData = [
+            {
+                id: 1,
+                league: 'دوري أبطال أوروبا - النهائي',
+                team1: { name: 'ريال مدريد', logo: '⚽' },
+                team2: { name: 'برشلونة', logo: '🔵🔴' },
+                score: '2 - 1',
+                status: 'جارية الآن',
+                isLive: true,
+                time: '10:00 مساءً',
+                channel: 'beIN Sports HD 1',
+                commentator: 'عصام الشوالي',
+                embedSources: [
+                    activeStreamUrl,
+                    'https://www.youtube.com/embed/dQw4w9WgXcQ'
+                ]
+            }
+        ];
+
+        let currentMatch = null;
+        let hlsPlayer = null;
+
+        function renderMatches() {
+            const container = document.getElementById('matchesContainer');
+            container.innerHTML = '';
+
+            matchesData.forEach(match => {
+                const card = document.createElement('div');
+                card.className = 'bg-darkCard border border-darkBorder hover:border-brandGreen/40 rounded-2xl p-4 sm:p-5 shadow-lg transition duration-200';
+                card.innerHTML = `
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center justify-between w-full sm:w-2/3 gap-3">
+                            <div class="flex flex-col items-center sm:flex-row sm:gap-3 flex-1 text-center sm:text-right">
+                                <span class="text-3xl mb-1 sm:mb-0">${match.team1.logo}</span>
+                                <span class="font-bold text-base text-white">${match.team1.name}</span>
+                            </div>
+
+                            <div class="flex flex-col items-center justify-center px-4">
+                                <span class="px-2.5 py-0.5 rounded-full bg-red-500/10 border border-red-500/40 text-red-500 text-[10px] font-black animate-pulse mb-1">مباشر</span>
+                                <div class="px-4 py-1.5 rounded-xl bg-darkBg border border-darkBorder font-black text-lg text-brandNeon">${match.score}</div>
+                                <span class="text-[11px] text-gray-400 font-semibold mt-1">${match.time}</span>
+                            </div>
+
+                            <div class="flex flex-col items-center sm:flex-row-reverse sm:gap-3 flex-1 text-center sm:text-left">
+                                <span class="text-3xl mb-1 sm:mb-0">${match.team2.logo}</span>
+                                <span class="font-bold text-base text-white">${match.team2.name}</span>
+                            </div>
+                        </div>
+
+                        <div class="w-full sm:w-1/3 flex flex-col sm:items-end justify-center border-t sm:border-t-0 sm:border-r border-darkBorder pt-3 sm:pt-0 sm:pr-4 gap-2">
+                            <div class="text-[11px] text-gray-400 font-semibold text-center sm:text-right w-full">
+                                <span><i class="fa-solid fa-tv text-brandCyan ml-1"></i> ${match.channel}</span>
+                                <span class="mx-1">•</span>
+                                <span><i class="fa-solid fa-microphone text-gray-400 ml-1"></i> ${match.commentator}</span>
+                            </div>
+                            <button onclick="openPlayerModal(${match.id})" class="w-full py-2.5 px-4 rounded-xl bg-brandNeon text-black shadow-lg shadow-brandNeon/20 hover:bg-emerald-400 font-bold text-xs flex items-center justify-center gap-2 transition">
+                                <i class="fa-solid fa-play"></i>
+                                <span>تشغيل البث المباشر</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function openPlayerModal(matchId) {
+            const match = matchesData.find(m => m.id === matchId);
+            if (!match) return;
+
+            currentMatch = match;
+            document.getElementById('modalMatchTitle').textContent = `${match.team1.name} vs ${match.team2.name}`;
+            document.getElementById('modalLeague').textContent = match.league;
+            document.getElementById('modalChannel').textContent = match.channel;
+            document.getElementById('modalCommentator').textContent = match.commentator;
+            document.getElementById('modalTime').textContent = match.time;
+
+            const serverContainer = document.getElementById('serverContainer');
+            serverContainer.innerHTML = '';
+            
+            match.embedSources.forEach((src, idx) => {
+                const btn = document.createElement('button');
+                btn.onclick = () => switchServer(idx);
+                btn.className = `server-btn px-3 py-1.5 rounded-lg text-xs font-bold transition ${idx === 0 ? 'bg-brandNeon text-black border border-brandNeon' : 'bg-darkCard text-gray-300 border border-darkBorder hover:text-white'}`;
+                btn.textContent = `سيرفر ${idx + 1} (${idx === 0 ? 'سيرفرك الرئيسي' : 'احتياطي'})`;
+                serverContainer.appendChild(btn);
+            });
+
+            renderStreamSource(match.embedSources[0]);
+
+            const modal = document.getElementById('playerModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.remove('opacity-0'), 10);
+        }
+
+        function renderStreamSource(url) {
+            const container = document.getElementById('playerDisplayArea');
+            container.innerHTML = '';
+
+            // Clean up old HLS player instance if exists
+            if (hlsPlayer) {
+                hlsPlayer.destroy();
+                hlsPlayer = null;
+            }
+
+            const cleanUrl = url.trim();
+
+            // Check if URL is an .m3u8 live video file
+            if (cleanUrl.includes('.m3u8') || cleanUrl.includes('m3u')) {
+                const video = document.createElement('video');
+                video.className = 'w-full h-full object-contain';
+                video.controls = true;
+                video.autoplay = true;
+                container.appendChild(video);
+
+                if (Hls.isSupported()) {
+                    hlsPlayer = new Hls();
+                    hlsPlayer.loadSource(cleanUrl);
+                    hlsPlayer.attachMedia(video);
+                    hlsPlayer.on(Hls.Events.MANIFEST_PARSED, function () {
+                        video.play().catch(() => {});
+                    });
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    // Native Safari HLS support
+                    video.src = cleanUrl;
+                    video.addEventListener('loadedmetadata', function () {
+                        video.play();
+                    });
+                } else {
+                    // Fallback to iframe embed if browser completely lacks HLS support
+                    container.innerHTML = `<iframe src="${cleanUrl}" class="w-full h-full border-0" allowfullscreen allow="autoplay"></iframe>`;
+                }
+            } else if (cleanUrl.toLowerCase().startsWith('<iframe')) {
+                container.innerHTML = cleanUrl;
+            } else {
+                let formattedUrl = cleanUrl;
+                if (formattedUrl.includes('youtube.com/watch?v=')) {
+                    formattedUrl = formattedUrl.replace('watch?v=', 'embed/');
+                }
+                const iframe = document.createElement('iframe');
+                iframe.className = 'w-full h-full border-0';
+                iframe.src = formattedUrl;
+                iframe.setAttribute('allowfullscreen', 'true');
+                iframe.setAttribute('allow', 'autoplay; encrypted-media');
+                container.appendChild(iframe);
+            }
+        }
+
+        function switchServer(index) {
+            if (!currentMatch || !currentMatch.embedSources[index]) return;
+            const buttons = document.querySelectorAll('.server-btn');
+            buttons.forEach((btn, idx) => {
+                btn.className = `server-btn px-3 py-1.5 rounded-lg text-xs font-bold transition ${idx === index ? 'bg-brandNeon text-black border border-brandNeon' : 'bg-darkCard text-gray-300 border border-darkBorder hover:text-white'}`;
+            });
+            renderStreamSource(currentMatch.embedSources[index]);
+        }
+
+        function closePlayerModal() {
+            const modal = document.getElementById('playerModal');
+            const container = document.getElementById('playerDisplayArea');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                container.innerHTML = '';
+                if (hlsPlayer) {
+                    hlsPlayer.destroy();
+                    hlsPlayer = null;
+                }
+            }, 300);
+        }
+
+        function openChangeLinkModal() {
+            document.getElementById('customLinkInput').value = matchesData[0].embedSources[0];
+            const modal = document.getElementById('changeLinkModal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.remove('opacity-0'), 10);
+        }
+
+        function closeChangeLinkModal() {
+            const modal = document.getElementById('changeLinkModal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function handleSaveCustomLink(e) {
+            e.preventDefault();
+            const newUrl = document.getElementById('customLinkInput').value.trim();
+            if (newUrl) {
+                matchesData[0].embedSources[0] = newUrl;
+                closeChangeLinkModal();
+                openPlayerModal(1);
+            }
+        }
+
+        window.onload = function() {
+            renderMatches();
+        };
+    </script>
+</body>
+</html>
+
