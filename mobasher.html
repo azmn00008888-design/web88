@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بث مباشر | القنوات الرسمية</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Cairo) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ytRed: '#FF0000',
+                        ytDark: '#0F0F0F',
+                        ytCard: '#1C1C1C',
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #0f0f0f;
+            color: #ffffff;
+        }
+        .live-dot {
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.9); }
+        }
+        /* تأثير حركي خفيف للإعلان عند التحويم */
+        .ad-banner-link {
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .ad-banner-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- الهيدر وشريط التنقل بين الصفحات -->
+    <header class="bg-ytCard/90 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            
+            <!-- الشعار والعنوان -->
+            <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
+                <div class="flex items-center gap-3">
+                    <div class="bg-red-600 text-white w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-lg shadow-red-600/30">
+                        <i class="fa-solid fa-tower-broadcast"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-tight flex items-center gap-2">
+                            بث مباشر
+                            <span class="inline-flex items-center gap-1 bg-red-600/20 text-red-500 text-xs px-2.5 py-0.5 rounded-full border border-red-500/30">
+                                <span class="w-2 h-2 rounded-full bg-red-600 live-dot"></span>
+                                الآن
+                            </span>
+                        </h1>
+                        <span class="text-xs text-gray-400">منصة العرض المباشر</span>
+                    </div>
+                </div>
+
+                <!-- زر الاشتراك للموبايل -->
+                <a href="https://youtube.com" target="_blank" class="sm:hidden bg-ytRed text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1">
+                    <i class="fa-brands fa-youtube"></i>
+                    اشتراك
+                </a>
+            </div>
+
+            <!-- أزرار التنقل بين الصفحات الـ 3 -->
+            <nav class="flex items-center bg-black/50 p-1.5 rounded-2xl border border-gray-800 w-full sm:w-auto justify-center">
+                <button onclick="switchPage('page1')" id="nav-page1" class="nav-btn active bg-ytRed text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition">
+                    <i class="fa-solid fa-play"></i>
+                    البث الرئيسي
+                </button>
+                <button onclick="switchPage('page2')" id="nav-page2" class="nav-btn text-gray-400 hover:text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition">
+                    <i class="fa-solid fa-satellite-dish"></i>
+                    البث الثانوي
+                </button>
+                <button onclick="switchPage('page3')" id="nav-page3" class="nav-btn text-gray-400 hover:text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition">
+                    <i class="fa-solid fa-clapperboard"></i>
+                    العرض الخاص
+                </button>
+            </nav>
+
+            <!-- زر الاشتراك للشاشات الكبيرة -->
+            <a href="https://youtube.com" target="_blank" class="hidden sm:flex bg-ytRed hover:bg-red-700 text-white font-bold px-5 py-2 rounded-full text-sm items-center gap-2 transition shadow-md hover:shadow-red-500/20">
+                <i class="fa-brands fa-youtube text-lg"></i>
+                <span>اشتراك بالقناة</span>
+            </a>
+
+        </div>
+    </header>
+
+    <!-- المحتوى الرئيسي للموقع -->
+    <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-center">
+        
+        <!-- الصفحة 1: البث الرئيسي -->
+        <section id="page1" class="page-content flex flex-col gap-4">
+            <div class="flex justify-between items-center px-1">
+                <h2 class="text-xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-circle text-xs text-red-600 live-dot"></i>
+                    البث المباشر الرئيسي
+                </h2>
+                <span class="text-xs text-gray-400 bg-gray-800/80 px-3 py-1 rounded-full border border-gray-700">جودة عالية HD</span>
+            </div>
+
+            <!-- مشغل البث الأول -->
+            <div class="relative w-full bg-black rounded-2xl overflow-hidden shadow-2xl border border-gray-800 pt-[56.25%]">
+                <iframe 
+                    class="absolute top-0 left-0 w-full h-full border-0"
+                    src="https://iframe.rumsport8.live/stream.m3u8?is_vip=false&token=76fe945e0347a6361bf60d88be09a59a1533d5e6&url=https%3A%2F%2Flivecdn-bp-livestream.rumsport7.live%2Fsla%2F1-6a4fbe919a1d202ef623a0ac%2Findex.m3u8&verify=1785693600-EbCzcdJv%2FX4CWBEBxRvZ0aOOyWzV5hwkb%2FUSawywkZU%3D" 
+                    title="بث مباشر 1"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+
+            <!-- ====================================================== -->
+            <!--   مساحة الإعلان للتسويق بالعمولة (Affiliate Banner)   -->
+            <!-- ====================================================== -->
+            <div class="w-full">
+                <div class="text-[10px] text-gray-500 mb-1 text-center font-semibold tracking-wider">إعلان / محتوى برعايتنا</div>
+                <!-- 
+                    - استبدل href برابط الأفلييت الخاص بك
+                    - استبدل src برابط صورتك الإعلانية الخارجية
+                -->
+                <a href="https://s.click.aliexpress.com/e/_c3u6yFd9" target="_blank" rel="noopener noreferrer" class="ad-banner-link block w-full rounded-2xl overflow-hidden border border-gray-800 bg-ytCard/50">
+                    <img 
+                        src="https://raw.githubusercontent.com/azmn00008888-design/web88/refs/heads/main/F339E64D-2363-4EE0-8945-4D725A057F5F.png" 
+                        alt="إعلان تسويق بالعمولة" 
+                        class="w-full h-auto max-h-36 object-cover rounded-2xl block"
+                    />
+                </a>
+            </div>
+            <!-- ====================================================== -->
+
+            <!-- كرت الوصف وعدد المتواجدين الحقيقي -->
+            <div class="bg-ytCard border border-gray-800 p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <p class="text-sm text-gray-300">أهلاً بكم في البث المباشر الرئيسي، نتمنى لكم مشاهدة ممتعة.</p>
+                
+                <!-- شريط عدد المتواجدين الحقيقي -->
+                <div class="flex items-center gap-3 bg-black/60 px-4 py-2 rounded-xl border border-gray-800 shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                    <div class="flex items-center gap-2 text-xs font-bold text-gray-300">
+                        <span class="w-2.5 h-2.5 rounded-full bg-green-500 live-dot"></span>
+                        <span>المتواجدون الآن:</span>
+                    </div>
+                    <span id="realtime-count-page1" class="text-base font-extrabold text-green-400 font-mono">0</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- الصفحة 2: البث الثانوي -->
+        <section id="page2" class="page-content hidden flex flex-col gap-4">
+            <div class="flex justify-between items-center px-1">
+                <h2 class="text-xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-satellite-dish text-red-500"></i>
+                    البث المباشر الثانوي / القناة الثانية
+                </h2>
+                <span class="text-xs text-gray-400 bg-gray-800/80 px-3 py-1 rounded-full border border-gray-700">بث متعدد</span>
+            </div>
+
+            <!-- مشغل البث الثاني -->
+            <div class="relative w-full bg-black rounded-2xl overflow-hidden shadow-2xl border border-gray-800 pt-[56.25%]">
+                <iframe 
+                    class="absolute top-0 left-0 w-full h-full border-0"
+                    src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0" 
+                    title="بث مباشر 2"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+
+            <!-- مساحة إعلانية للصفحة الثانية -->
+            <div class="w-full">
+                <div class="text-[10px] text-gray-500 mb-1 text-center font-semibold tracking-wider">إعلان / محتوى برعايتنا</div>
+                <a href="https://YOUR-AFFILIATE-LINK.com" target="_blank" rel="noopener noreferrer" class="ad-banner-link block w-full rounded-2xl overflow-hidden border border-gray-800 bg-ytCard/50">
+                    <img 
+                        src="https://via.placeholder.com/900x120/1c1c1c/ffffff?text=%D8%B6%D8%B9+%D8%B5%D9%88%D8%B1%D8%A9+%D8%A7%D9%84%D8%A5%D8%B9%D9%84%D8%A7%D9%86+%D9%87%D9%86%D8%A7+(Affiliate+Banner)" 
+                        alt="إعلان تسويق بالعمولة" 
+                        class="w-full h-auto max-h-36 object-cover rounded-2xl block"
+                    />
+                </a>
+            </div>
+
+            <!-- كرت الوصف وعدد المتواجدين الحقيقي -->
+            <div class="bg-ytCard border border-gray-800 p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <p class="text-sm text-gray-300">تغطية إضافية وبث حي من الزاوية الثانية.</p>
+                
+                <div class="flex items-center gap-3 bg-black/60 px-4 py-2 rounded-xl border border-gray-800 shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                    <div class="flex items-center gap-2 text-xs font-bold text-gray-300">
+                        <span class="w-2.5 h-2.5 rounded-full bg-green-500 live-dot"></span>
+                        <span>المتواجدون الآن:</span>
+                    </div>
+                    <span id="realtime-count-page2" class="text-base font-extrabold text-green-400 font-mono">0</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- الصفحة 3: العرض الخاص / الكواليس -->
+        <section id="page3" class="page-content hidden flex flex-col gap-4">
+            <div class="flex justify-between items-center px-1">
+                <h2 class="text-xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-film text-red-500"></i>
+                    العرض الخاص / ملخص البث
+                </h2>
+                <span class="text-xs text-gray-400 bg-gray-800/80 px-3 py-1 rounded-full border border-gray-700">فيديو مميز</span>
+            </div>
+
+            <!-- مشغل الفيديو الثالث -->
+            <div class="relative w-full bg-black rounded-2xl overflow-hidden shadow-2xl border border-gray-800 pt-[56.25%]">
+                <iframe 
+                    class="absolute top-0 left-0 w-full h-full border-0"
+                    src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0" 
+                    title="عرض خاص"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+
+            <!-- مساحة إعلانية للصفحة الثالثة -->
+            <div class="w-full">
+                <div class="text-[10px] text-gray-500 mb-1 text-center font-semibold tracking-wider">إعلان / محتوى برعايتنا</div>
+                <a href="https://YOUR-AFFILIATE-LINK.com" target="_blank" rel="noopener noreferrer" class="ad-banner-link block w-full rounded-2xl overflow-hidden border border-gray-800 bg-ytCard/50">
+                    <img 
+                        src="https://via.placeholder.com/900x120/1c1c1c/ffffff?text=%D8%B6%D8%B9+%D8%B5%D9%88%D8%B1%D8%A9+%D8%A7%D9%84%D8%A5%D8%B9%D9%84%D8%A7%D9%86+%D9%87%D9%86%D8%A7+(Affiliate+Banner)" 
+                        alt="إعلان تسويق بالعمولة" 
+                        class="w-full h-auto max-h-36 object-cover rounded-2xl block"
+                    />
+                </a>
+            </div>
+
+            <!-- كرت الوصف وعدد المتواجدين الحقيقي -->
+            <div class="bg-ytCard border border-gray-800 p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <p class="text-sm text-gray-300">عرض التسجيلات السابقة أو ملخص البث المباشر.</p>
+                
+                <div class="flex items-center gap-3 bg-black/60 px-4 py-2 rounded-xl border border-gray-800 shrink-0 w-full sm:w-auto justify-between sm:justify-start">
+                    <div class="flex items-center gap-2 text-xs font-bold text-gray-300">
+                        <span class="w-2.5 h-2.5 rounded-full bg-green-500 live-dot"></span>
+                        <span>المتواجدون الآن:</span>
+                    </div>
+                    <span id="realtime-count-page3" class="text-base font-extrabold text-green-400 font-mono">0</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- الفوتر مع إجمالي الزيارات والمكان -->
+    <footer class="bg-ytCard/50 border-t border-gray-800 py-4 text-center text-xs text-gray-500">
+        <div class="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <p>جميع الحقوق محفوظة © <span id="year"></span> - بث مباشر</p>
+            
+            <div class="flex items-center gap-4 text-gray-400">
+                <span class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-users text-red-500"></i>
+                    المتواجدون إجمالاً في الموقع: <strong id="total-online" class="text-white font-mono">0</strong>
+                </span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK Script -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // إعدادات البيئة لـ Firebase
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "demo",
+            authDomain: "demo.firebaseapp.com",
+            projectId: "demo",
+            storageBucket: "demo.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:demo"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'live-stream-app';
+
+        let currentUser = null;
+        let currentPage = 'page1';
+        let heartbeatInterval = null;
+        const sessionId = crypto.randomUUID();
+
+        // المصادقة المباشرة
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.error("Auth error:", err);
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                startPresenceTracking();
+                listenToLivePresence();
+            }
+        });
+
+        initAuth();
+
+        // تسجيل التواجد الحقيقي وإرسال نبض (Heartbeat) كل 8 ثوانٍ
+        async function updatePresence() {
+            if (!currentUser) return;
+            try {
+                const presenceRef = doc(db, 'artifacts', appId, 'public', 'data', 'presence', sessionId);
+                await setDoc(presenceRef, {
+                    page: currentPage,
+                    lastSeen: Date.now(),
+                    userId: currentUser.uid
+                });
+            } catch (err) {
+                console.error("Error updating presence:", err);
+            }
+        }
+
+        // إزالة التواجد عند إغلاق الصفحة أو المغادرة
+        async function removePresence() {
+            if (!currentUser) return;
+            try {
+                const presenceRef = doc(db, 'artifacts', appId, 'public', 'data', 'presence', sessionId);
+                await deleteDoc(presenceRef);
+            } catch (err) {}
+        }
+
+        function startPresenceTracking() {
+            updatePresence();
+            if (heartbeatInterval) clearInterval(heartbeatInterval);
+            heartbeatInterval = setInterval(updatePresence, 8000);
+        }
+
+        // الاستماع المباشر للتواجد ودعم حقيقي لـ 0 بدون زيادات وهمية
+        function listenToLivePresence() {
+            if (!currentUser) return;
+            const presenceCol = collection(db, 'artifacts', appId, 'public', 'data', 'presence');
+
+            onSnapshot(presenceCol, (snapshot) => {
+                const now = Date.now();
+                const TIMEOUT = 20000;
+
+                let counts = { page1: 0, page2: 0, page3: 0 };
+                let total = 0;
+
+                snapshot.docs.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (data && data.lastSeen && (now - data.lastSeen) < TIMEOUT) {
+                        if (counts[data.page] !== undefined) {
+                            counts[data.page]++;
+                        }
+                        total++;
+                    }
+                });
+
+                // تحديث العدادات الحقيقية بالصفحة
+                document.getElementById('realtime-count-page1').textContent = counts.page1;
+                document.getElementById('realtime-count-page2').textContent = counts.page2;
+                document.getElementById('realtime-count-page3').textContent = counts.page3;
+                document.getElementById('total-online').textContent = total;
+            }, (error) => {
+                console.error("Presence snapshot error:", error);
+            });
+        }
+
+        // التنقل بين الصفحات
+        window.switchPage = function(pageId) {
+            currentPage = pageId;
+
+            const pages = document.querySelectorAll('.page-content');
+            pages.forEach(page => page.classList.add('hidden'));
+
+            const navBtns = document.querySelectorAll('.nav-btn');
+            navBtns.forEach(btn => {
+                btn.classList.remove('bg-ytRed', 'text-white');
+                btn.classList.add('text-gray-400');
+            });
+
+            document.getElementById(pageId).classList.remove('hidden');
+
+            const activeBtn = document.getElementById('nav-' + pageId);
+            activeBtn.classList.add('bg-ytRed', 'text-white');
+            activeBtn.classList.remove('text-gray-400');
+
+            updatePresence();
+        };
+
+        window.addEventListener('beforeunload', () => {
+            removePresence();
+        });
+    </script>
+</body>
+</html>
+
